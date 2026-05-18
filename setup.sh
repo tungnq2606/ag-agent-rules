@@ -451,6 +451,44 @@ if [ -f "$SCAN_PROMPT" ]; then
 fi
 
 # -----------------------------------------------------------------------------
+# 7. Git hook for memory validation
+# -----------------------------------------------------------------------------
+HOOKS_DIR="$TARGET_REPO/.githooks"
+if [ ! -f "$HOOKS_DIR/pre-commit" ]; then
+  info "Setting up git hook for memory validation..."
+  mkdir -p "$HOOKS_DIR"
+  cat > "$HOOKS_DIR/pre-commit" << 'HOOK'
+#!/bin/bash
+MEMORY_STAGED=$(git diff --cached --name-only -- 'memory/*.md' 2>/dev/null)
+if [ -z "$MEMORY_STAGED" ]; then exit 0; fi
+echo "🔍 Validating memory files..."
+if [ -f "memory/validate.sh" ]; then
+  bash memory/validate.sh
+  if [ $? -ne 0 ]; then
+    echo "❌ Memory validation failed. Fix errors before committing."
+    exit 1
+  fi
+fi
+exit 0
+HOOK
+  chmod +x "$HOOKS_DIR/pre-commit"
+  cd "$TARGET_REPO" && git config core.hooksPath .githooks 2>/dev/null || true
+  log "Git hook installed (.githooks/pre-commit)"
+else
+  warn "Git hook already exists, skipping."
+fi
+
+# -----------------------------------------------------------------------------
+# 8. AgentMemory (optional — if installed)
+# -----------------------------------------------------------------------------
+if command -v agentmemory &>/dev/null; then
+  info "AgentMemory detected — connecting to agents..."
+  agentmemory connect --all 2>/dev/null && log "AgentMemory connected to all agents" || warn "AgentMemory connect failed (non-critical)"
+else
+  info "AgentMemory not installed (optional). Install: npm install -g @agentmemory/agentmemory"
+fi
+
+# -----------------------------------------------------------------------------
 # Done
 # -----------------------------------------------------------------------------
 echo ""
@@ -464,6 +502,7 @@ echo "  ✓ ~/.gemini/antigravity/skills/  (Antigravity skills)"
 echo "  ✓ ~/.agents/memory/             (global cross-project memory)"
 echo "  ✓ $TARGET_REPO/memory/          (project memory — 8 files)"
 echo "  ✓ $TARGET_REPO/.agent/scan-project.md  (scan prompt)"
+echo "  ✓ $TARGET_REPO/.githooks/pre-commit    (memory validation)"
 echo ""
 echo -e "${CYAN}╔════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║  BƯỚC TIẾP THEO (BẮT BUỘC):           ║${NC}"
@@ -477,8 +516,9 @@ echo -e "${CYAN}║  2. Populate COMPACT.md, context.md    ║${NC}"
 echo -e "${CYAN}║  3. Generate CLAUDE.md, GEMINI.md      ║${NC}"
 echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
 echo ""
-echo "Tùy chọn:"
-echo "  • Superpowers: /plugin install superpowers@claude-plugins-official"
-echo "  • AgentMemory: npm install -g @agentmemory/agentmemory"
-echo "  • GitNexus:    npx gitnexus@latest analyze"
+echo "Scripts có sẵn:"
+echo "  bash memory/validate.sh         # Kiểm tra memory files"
+echo "  bash memory/consolidate.sh      # Archive lessons cũ"
+echo "  bash memory/capture.sh ...      # Ghi session log"
 echo ""
+
