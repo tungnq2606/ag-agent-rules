@@ -15,11 +15,25 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Xác định repo target: arg --repo hoặc thư mục hiện tại
+# Xác định repo target và flags
 TARGET_REPO="$(pwd)"
-if [[ "${1:-}" == "--repo" && -n "${2:-}" ]]; then
-  TARGET_REPO="$2"
-fi
+RESCAN=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo)
+      TARGET_REPO="$2"
+      shift 2
+      ;;
+    --rescan)
+      RESCAN=true
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -428,7 +442,7 @@ info "Copy templates + scan prompt ..."
 TEMPLATES_SRC="$SCRIPT_DIR/templates"
 SCAN_PROMPT="$SCRIPT_DIR/scan-project.md"
 
-# Copy instruction file templates (nếu chưa có CLAUDE.md/GEMINI.md)
+# Copy instruction file templates
 if [ -d "$TEMPLATES_SRC" ]; then
   for TEMPLATE in "$TEMPLATES_SRC"/*.template; do
     [ -f "$TEMPLATE" ] || continue
@@ -437,8 +451,12 @@ if [ -d "$TEMPLATES_SRC" ]; then
     if [ ! -f "$TARGET_FILE" ]; then
       cp "$TEMPLATE" "$TARGET_FILE"
       log "Tạo $BASENAME (template — cần chạy scan để populate)"
+    elif [ "$RESCAN" = true ]; then
+      cp "$TARGET_FILE" "${TARGET_FILE}.bak"
+      cp "$TEMPLATE" "$TARGET_FILE"
+      log "$BASENAME updated (backup → ${BASENAME}.bak) — cần chạy scan lại"
     else
-      warn "$BASENAME đã tồn tại, bỏ qua."
+      warn "$BASENAME đã tồn tại, bỏ qua. (dùng --rescan để update)"
     fi
   done
 fi
@@ -504,21 +522,37 @@ echo "  ✓ $TARGET_REPO/memory/          (project memory — 8 files)"
 echo "  ✓ $TARGET_REPO/.agent/scan-project.md  (scan prompt)"
 echo "  ✓ $TARGET_REPO/.githooks/pre-commit    (memory validation)"
 echo ""
-echo -e "${CYAN}╔════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║  BƯỚC TIẾP THEO (BẮT BUỘC):           ║${NC}"
-echo -e "${CYAN}║                                        ║${NC}"
-echo -e "${CYAN}║  Mở AI agent và paste prompt từ:       ║${NC}"
-echo -e "${CYAN}║  .agent/scan-project.md                ║${NC}"
-echo -e "${CYAN}║                                        ║${NC}"
-echo -e "${CYAN}║  Agent sẽ tự động:                     ║${NC}"
-echo -e "${CYAN}║  1. Scan codebase                      ║${NC}"
-echo -e "${CYAN}║  2. Populate COMPACT.md, context.md    ║${NC}"
-echo -e "${CYAN}║  3. Generate CLAUDE.md, GEMINI.md      ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
+if [ "$RESCAN" = true ]; then
+  echo -e "${CYAN}╔════════════════════════════════════════╗${NC}"
+  echo -e "${CYAN}║  TEMPLATES ĐÃ ĐƯỢC UPDATE!             ║${NC}"
+  echo -e "${CYAN}║                                        ║${NC}"
+  echo -e "${CYAN}║  Backup: CLAUDE.md.bak, GEMINI.md.bak  ║${NC}"
+  echo -e "${CYAN}║                                        ║${NC}"
+  echo -e "${CYAN}║  Chạy scan để populate lại:            ║${NC}"
+  echo -e "${CYAN}║  .agent/scan-project.md                ║${NC}"
+  echo -e "${CYAN}║                                        ║${NC}"
+  echo -e "${CYAN}║  Agent sẽ MERGE project context vào    ║${NC}"
+  echo -e "${CYAN}║  templates mới (không mất data cũ).    ║${NC}"
+  echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
+else
+  echo -e "${CYAN}╔════════════════════════════════════════╗${NC}"
+  echo -e "${CYAN}║  BƯỚC TIẾP THEO (BẮT BUỘC):           ║${NC}"
+  echo -e "${CYAN}║                                        ║${NC}"
+  echo -e "${CYAN}║  Mở AI agent và paste prompt từ:       ║${NC}"
+  echo -e "${CYAN}║  .agent/scan-project.md                ║${NC}"
+  echo -e "${CYAN}║                                        ║${NC}"
+  echo -e "${CYAN}║  Agent sẽ tự động:                     ║${NC}"
+  echo -e "${CYAN}║  1. Scan codebase                      ║${NC}"
+  echo -e "${CYAN}║  2. Populate COMPACT.md, context.md    ║${NC}"
+  echo -e "${CYAN}║  3. Generate CLAUDE.md, GEMINI.md      ║${NC}"
+  echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
+fi
 echo ""
 echo "Scripts có sẵn:"
 echo "  bash memory/validate.sh         # Kiểm tra memory files"
 echo "  bash memory/consolidate.sh      # Archive lessons cũ"
 echo "  bash memory/capture.sh ...      # Ghi session log"
 echo ""
-
+echo "Update templates cho project cũ:"
+echo "  bash setup.sh --repo /path/to/project --rescan"
+echo ""

@@ -33,7 +33,7 @@ description: "Use when the user is debugging a bug, tracing an error, or asking 
 - [ ] gitnexus_context to see callers and callees
 - [ ] Trace execution flow via process resource if applicable
 - [ ] gitnexus_cypher for custom call chain traces if needed
-- [ ] Read source files to confirm root cause
+- [ ] Only read source files if graph didn't cover a specific root cause detail
 ```
 
 ## Debugging Patterns

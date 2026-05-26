@@ -32,14 +32,15 @@ GitNexus's returned source is authoritative — treat it as already read. Reach 
 
 ## Skills
 
-| Task                                         | Skill to read       |
-| -------------------------------------------- | ------------------- |
+| Task                                         | Skill to read                |
+| -------------------------------------------- | ---------------------------- |
 | Understand architecture / "How does X work?" | `gitnexus-exploring`         |
 | Blast radius / "What breaks if I change X?"  | `gitnexus-impact-analysis`   |
 | Trace bugs / "Why is X failing?"             | `gitnexus-debugging`         |
 | Rename / extract / split / refactor          | `gitnexus-refactoring`       |
+| Review a PR / "Is this safe to merge?"       | `gitnexus-pr-review`         |
 | Tools, resources, schema reference           | `gitnexus-guide` (this file) |
-| Index, status, clean, wiki CLI commands      | `gitnexus-cli`               |
+| CLI: index, setup, doctor, group, clean      | `gitnexus-cli`               |
 
 ## Tools Reference
 
