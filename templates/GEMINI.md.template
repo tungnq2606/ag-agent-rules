@@ -4,7 +4,7 @@
 
 ## Critical Rules (Read First)
 
-- **Always plan before implementing.** Write plan with `[Step] → verify: [check]` → wait for approval → implement
+- **Always brainstorm → plan → implement.** Use `brainstorming` skill to analyze first → `writing-plans` skill to write plan with `[Step] → verify: [check]` → wait for approval → implement. Skip brainstorming for trivial bug fixes (< 10 lines)
 - **Never use `any`** in TypeScript. Ask user for types instead
 - **Bug fixes must be minimal.** Fix the bug, nothing else
 - **When in doubt**: ask the user. Don't guess

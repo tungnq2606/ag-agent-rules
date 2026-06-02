@@ -61,17 +61,20 @@ The test: **Every changed line should trace directly to the user's request.**
 
 ## Working with Plan Mode (MANDATORY)
 
-**Always plan before implementing. No exceptions.**
+**Always brainstorm → plan → implement. No exceptions.**
 
-1. **Plan first**: Write a plan with verifiable goals:
-   ```
-   1. [Step] → verify: [check]
-   2. [Step] → verify: [check]
-   3. [Step] → verify: [check]
-   ```
-2. **Wait for approval**: Do NOT implement until user says "ok", "go", "approved", "lgtm"
-3. **Implement**: Follow the plan exactly, one step at a time
-4. **Verify each step**: Run the check defined in the plan, loop until pass
+1. **Brainstorm first**: Use the `brainstorming` skill to analyze the problem
+   - Explore context, ask clarifying questions, propose 2-3 approaches
+   - Present design and get user approval before writing a plan
+   - Skip for trivial bug fixes (< 10 lines changed)
+2. **Write plan**: Use the `writing-plans` skill to create a detailed implementation plan
+   - Bite-sized tasks with exact file paths, code blocks, and test commands
+   - Each step has `[Step] → verify: [check]`
+   - No placeholders — every step contains actual code
+3. **Wait for approval**: Do NOT implement until user says "ok", "go", "approved", "lgtm"
+4. **Implement**: Follow the plan exactly, one step at a time
+5. **Verify each step**: Run the check defined in the plan, loop until pass
+
 
 ## Memory System
 
