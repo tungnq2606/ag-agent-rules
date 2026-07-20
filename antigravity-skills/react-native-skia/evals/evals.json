@@ -1,0 +1,117 @@
+{
+  "skill_name": "react-native-skia",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a premium React Native Skia card component for an upsell panel. I want layered glow, a restrained glass feel, and smooth always-on motion that still has a reduced-motion fallback.",
+      "expected_output": "A complete TSX component or coherent patch using React Native Skia with a clear motion concept, direct Reanimated shared or derived values on Skia props, and a reduced-motion path.",
+      "assertions": [
+        "The answer provides a full TSX component or a coherent patch",
+        "The code imports from @shopify/react-native-skia",
+        "The solution uses Reanimated shared or derived values directly on Skia props",
+        "The solution includes a reduced-motion fallback or lighter path",
+        "The explanation mentions why retained mode is sufficient or why a more advanced mode is needed"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Build a morphing blob loader in React Native Skia. It should feel organic, not generic, and it needs to stay performant.",
+      "expected_output": "A full example using Path and path interpolation or another justified morphing strategy, plus a short explanation of why the chosen path animation approach fits the workload.",
+      "assertions": [
+        "The code uses Path or an equivalent vector geometry primitive",
+        "The answer uses a morphing approach that is appropriate for Skia, such as usePathInterpolation or a clearly justified alternative",
+        "The explanation mentions why the geometry is efficient enough for the chosen effect",
+        "The answer avoids React state as the primary per-frame animation driver"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "My Expo web app shows a blank screen after I added @shopify/react-native-skia and moved a Skia component into a route. Diagnose it and patch the bootstrap code.",
+      "expected_output": "A diagnosis grounded in Skia web startup, plus a concrete patch using LoadSkiaWeb or WithSkiaWeb, and mention of setup-skia-web when relevant.",
+      "assertions": [
+        "The answer mentions CanvasKit loading or Skia web bootstrap ordering",
+        "The answer includes a concrete code patch or runnable example",
+        "The answer mentions setup-skia-web when discussing Expo web upgrades or setup",
+        "The answer avoids blaming component logic before checking configuration"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have hundreds of repeated sparkles orbiting in a React Native Skia hero background. Optimise it and explain the trade-offs.",
+      "expected_output": "A recommendation centred on Atlas when instances share the same texture, with a clear distinction from Picture for dynamic command lists and notes about keeping animation state off the JS thread.",
+      "assertions": [
+        "The answer recommends Atlas for many instances of the same texture when appropriate",
+        "The answer distinguishes Atlas from Picture based on workload shape",
+        "The answer mentions keeping animation state on the UI thread or avoiding JS-thread churn",
+        "The explanation includes at least one trade-off or caveat"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Implement a custom-font promotional badge with wrapped text in React Native Skia and explain why Paragraph is the right API.",
+      "expected_output": "A full example that uses Paragraph, explicit font loading, a null guard while fonts load, and a short explanation of why Paragraph is preferred for wrapped or multi-style text.",
+      "assertions": [
+        "The code uses Paragraph",
+        "The code uses useFonts or another explicit custom-font loading path",
+        "The code guards against fonts not being ready yet",
+        "The explanation states why Paragraph is preferable for wrapped or multi-style text"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Create a pan-and-pinch image stage in React Native Skia for a photo editor. Keep the gestures smooth and the architecture sensible.",
+      "expected_output": "A full example using react-native-gesture-handler and Reanimated shared values, with memoised gesture objects and transforms applied coherently to the Skia scene.",
+      "assertions": [
+        "The answer uses react-native-gesture-handler",
+        "The answer uses Reanimated shared values for transforms",
+        "The answer memoises gesture objects or explicitly discusses why gesture allocation is controlled",
+        "The answer avoids React state as the primary per-frame gesture state container"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Review this approach: I wrapped Skia circles with createAnimatedComponent, useAnimatedProps, and React state updates every frame because I wanted a premium particle field. What would you change?",
+      "expected_output": "A critique that redirects the implementation toward direct shared-value props, a better workload-specific render mode such as Atlas or Picture when justified, and explicit performance reasoning.",
+      "assertions": [
+        "The answer flags createAnimatedComponent or useAnimatedProps as unnecessary for ordinary Skia prop animation",
+        "The answer flags React state per frame as a problem",
+        "The answer recommends a more appropriate workload-specific render mode if the particle field is large",
+        "The answer explains why the revised approach is more performant"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "I need to capture a normal React Native view and stylise it in Skia. Implement it safely and mention the main pitfall.",
+      "expected_output": "A full example using makeImageFromView, asynchronous capture handling, and a note about collapsable={false} on the captured root view.",
+      "assertions": [
+        "The code uses makeImageFromView",
+        "The answer handles the asynchronous capture result",
+        "The answer mentions collapsable={false} on the captured root",
+        "The answer provides a full example or coherent patch"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Create a branded React Native Skia loader from Lottie JSON using Skottie. It should support runtime accent-colour customisation and a reduced-motion fallback.",
+      "expected_output": "A full example that uses Skia.Skottie.Make, renders with the Skottie component, drives frame playback sensibly, and mentions how runtime styling or slots are handled.",
+      "assertions": [
+        "The code uses Skia.Skottie.Make or another correct Skottie construction path",
+        "The code renders a Skottie component",
+        "The answer includes a frame value or playback strategy appropriate for Skottie",
+        "The answer includes reduced-motion behaviour or a static fallback",
+        "The explanation mentions runtime property or slot customisation, or explicitly explains why it is omitted"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Build a React Native Skia hero surface that uses video frames inside the canvas, supports tap-to-pause, and explain the main platform constraints.",
+      "expected_output": "A full example using useVideo with currentFrame guards, canvas rendering, and an explanation of native/web constraints such as Android API level and Reanimated requirements.",
+      "assertions": [
+        "The code uses useVideo",
+        "The code handles currentFrame not being ready yet",
+        "The answer includes a pause or seek control path",
+        "The explanation mentions at least one platform constraint for Skia video support"
+      ]
+    }
+  ]
+}

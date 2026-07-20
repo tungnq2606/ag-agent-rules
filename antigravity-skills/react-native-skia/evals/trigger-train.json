@@ -1,0 +1,54 @@
+[
+  {
+    "query": "Build a premium glassmorphism pricing card in Expo with React Native Skia and a subtle drifting glow.",
+    "should_trigger": true
+  },
+  {
+    "query": "My React Native Skia shader background looks too busy and janky. Can you redesign and optimise it?",
+    "should_trigger": true
+  },
+  {
+    "query": "I need a particle-like sparkle field in @shopify/react-native-skia that can handle hundreds of repeated elements.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you wire up CanvasKit correctly for my Expo web Skia route?",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a wrapped promotional badge in Skia with a custom font and rich text styles.",
+    "should_trigger": true
+  },
+  {
+    "query": "Make a pan and pinch photo stage with gesture handler and Skia.",
+    "should_trigger": true
+  },
+  {
+    "query": "Please add a subtle shimmer CTA using React Native Skia, but keep it fast.",
+    "should_trigger": true
+  },
+  {
+    "query": "My Skia runtime shader filter is blurry on iPhone. Fix the crispness.",
+    "should_trigger": true
+  },
+  {
+    "query": "Build a normal React Native settings screen with switches and a save button.",
+    "should_trigger": false
+  },
+  {
+    "query": "Show me how to animate a plain React Native View with LayoutAnimation.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a Node script that uploads rows from a CSV into Postgres.",
+    "should_trigger": false
+  },
+  {
+    "query": "Optimise my CSS canvas animation on a web landing page.",
+    "should_trigger": false
+  },
+  {
+    "query": "Use Skottie in React Native Skia to build a branded loader and recolour it to our accent.",
+    "should_trigger": true
+  }
+]

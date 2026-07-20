@@ -33,7 +33,7 @@ description: "Use when the user asks how code works, wants to understand archite
 - [ ] Review returned processes (execution flows)
 - [ ] gitnexus_context on key symbols for callers/callees
 - [ ] READ process resource for full execution traces
-- [ ] Only read source files if graph didn't cover a specific detail
+- [ ] Read source files for implementation details
 ```
 
 ## Resources
@@ -74,5 +74,5 @@ gitnexus_context({name: "validateUser"})
 3. gitnexus_context({name: "processPayment"})
    → Incoming: checkoutHandler, webhookHandler
    → Outgoing: validateCard, chargeStripe, saveTransaction
-4. Answer from graph results — only read src/payments/processor.ts if a specific detail wasn't covered
+4. Read src/payments/processor.ts for implementation details
 ```

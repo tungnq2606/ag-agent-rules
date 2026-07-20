@@ -1,0 +1,38 @@
+[
+  {
+    "query": "I want a fluid blob loader in React Native using Skia. Give me something polished and efficient.",
+    "should_trigger": true
+  },
+  {
+    "query": "Why is my Expo web build blank only after importing a Skia canvas component?",
+    "should_trigger": true
+  },
+  {
+    "query": "Use Skia to build a draggable spotlight card with a premium feel.",
+    "should_trigger": true
+  },
+  {
+    "query": "Optimise this repeated sprite field in Skia without sacrificing the look.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you fix my flexbox spacing in a plain Expo screen?",
+    "should_trigger": false
+  },
+  {
+    "query": "Help me write a Figma handoff checklist.",
+    "should_trigger": false
+  },
+  {
+    "query": "Improve my FlashList scrolling performance.",
+    "should_trigger": false
+  },
+  {
+    "query": "Make a CSS-only shimmer button for my website.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a tappable video-backed hero surface in Skia and keep it performant.",
+    "should_trigger": true
+  }
+]
