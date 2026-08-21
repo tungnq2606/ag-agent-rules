@@ -67,7 +67,7 @@ jest.mock('services/match-service', () => ({
 jest.useFakeTimers().setSystemTime(new Date('2026-01-01T12:00:00Z'))
 ```
 
-Native modules that appear in almost every render path (MMKV, Notifee, Firebase, Reanimated) belong in the Jest setup file once, not re-mocked per test. Check the existing setup file before adding another mock.
+Native modules that appear in almost every render path (MMKV, Firebase messaging, Reanimated, MoEngage, AppsFlyer) belong in `jest.setup.js` once, not re-mocked per test. Check what it already mocks before adding another.
 
 React Query needs a fresh `QueryClient` per test with retries off, otherwise a failing query retries into a timeout and the failure reads as a hang:
 

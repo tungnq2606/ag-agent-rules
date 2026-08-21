@@ -16,7 +16,7 @@ Examples:
 
 Verify by inspecting affected code and the diff.
 
-Normally do not run `yarn test` or full `yarn typecheck`.
+Normally do not run `yarn test` or a full type-check.
 
 Run a check only when the specific change can realistically affect what that check validates.
 
