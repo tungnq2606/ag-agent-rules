@@ -7,11 +7,11 @@
 #   FORCE=1 bash setup.sh [target-repo]                   # overwrite existing files (.bak kept)
 #
 # Installs:
-#   AGENTS.md            canonical instructions (Codex reads this natively)
+#   AGENTS.md            canonical instructions (Codex and Antigravity read this natively)
 #   CLAUDE.md            Claude Code adapter
+#   GEMINI.md            Antigravity adapter
 #   CONTEXT.md           domain glossary
-#   .agents/AGENTS.md    Antigravity adapter
-#   .agents/skills/      shared skills
+#   .agents/skills/      shared skills (Antigravity reads workspace skills here)
 #   .ai/rules/           on-demand rules
 #   .ai/memory/          session memory skeleton
 #   .ai/plans/           persisted plans
@@ -67,13 +67,13 @@ copy_tree() {
 info "Instruction files"
 copy_file AGENTS.md
 copy_file CLAUDE.md
+copy_file GEMINI.md
 copy_file CONTEXT.md
 echo
 
 # ------------------------------------------------------- 2. shared skills/rules
 
 info "Shared skills, rules, memory"
-copy_file .agents/AGENTS.md
 copy_tree .agents/skills
 copy_tree .ai/rules
 copy_tree .ai/memory
@@ -113,10 +113,74 @@ echo
 
 # -------------------------------------------------------------- 4. .gitignore
 
-if [ -f "$TARGET_DIR/.gitignore" ] && ! grep -qx '\.DS_Store' "$TARGET_DIR/.gitignore"; then
-  printf '\n.DS_Store\n' >> "$TARGET_DIR/.gitignore"
-  ok ".gitignore += .DS_Store"
+info "Managed .gitignore block"
+
+GITIGNORE="$TARGET_DIR/.gitignore"
+BEGIN='# >>> ag-agent-rules >>>'
+END='# <<< ag-agent-rules <<<'
+
+# Only what this install generates, plus the credential shape that has no
+# legitimate reason to be committed. Deliberately NOT here: .agents/, .ai/,
+# AGENTS.md, CONTEXT.md — those must be committed or Codex and Antigravity
+# get nothing on a teammate's clone. Nor blanket credential extensions:
+# many repos track signing assets for CI on purpose.
+read -r -d '' BLOCK <<'IGNORE_BLOCK' || true
+# Managed by ag-agent-rules setup.sh. Edits between the markers are overwritten.
+#
+# Committed on purpose (do not add them here): AGENTS.md, CONTEXT.md,
+# .agents/skills/, .ai/rules/, .ai/memory/, .ai/plans/ — the agent layer has to
+# travel with the repo for Codex and Antigravity to read it.
+
+.DS_Store
+
+# setup.sh writes these when overwriting an existing file
+*.bak
+
+# per-machine agent state
+.claude/settings.local.json
+.claude/skills/
+
+# service-account keys are never a repo artifact
+**/*service-account*.json
+IGNORE_BLOCK
+
+if [ -f "$GITIGNORE" ] && grep -qF "$BEGIN" "$GITIGNORE"; then
+  # Replace the existing block in place, leaving the rest of the file alone.
+  awk -v b="$BEGIN" -v e="$END" '
+    index($0, b) { skip = 1; print "@@BLOCK@@"; next }
+    index($0, e) { skip = 0; next }
+    !skip
+  ' "$GITIGNORE" > "$GITIGNORE.tmp"
+
+  {
+    while IFS= read -r line; do
+      if [ "$line" = "@@BLOCK@@" ]; then
+        printf '%s\n%s\n%s\n' "$BEGIN" "$BLOCK" "$END"
+      else
+        printf '%s\n' "$line"
+      fi
+    done < "$GITIGNORE.tmp"
+  } > "$GITIGNORE"
+  rm -f "$GITIGNORE.tmp"
+  ok ".gitignore block refreshed"
+else
+  [ -f "$GITIGNORE" ] || : > "$GITIGNORE"
+  printf '\n%s\n%s\n%s\n' "$BEGIN" "$BLOCK" "$END" >> "$GITIGNORE"
+  ok ".gitignore block added"
 fi
+
+# A tracked file is not affected by a new ignore rule — say so rather than
+# letting the user assume something got hidden.
+if [ -d "$TARGET_DIR/.git" ]; then
+  already_tracked=$(cd "$TARGET_DIR" && git ls-files 2>/dev/null \
+    | grep -E 'service-account.*\.json$|\.bak$' | head -5 || true)
+  if [ -n "$already_tracked" ]; then
+    warn "already tracked, so the new rules do not hide them:"
+    printf '    %s\n' $already_tracked
+    warn "untrack with: git rm --cached <path>  (rotate the credential too)"
+  fi
+fi
+echo
 
 # --------------------------------------------------------------- 5. validate
 

@@ -6,6 +6,20 @@ Record a change here when it alters what an agent does. A wording tidy-up that l
 
 This file is installed into every project, so it must stay portable: name files that live outside the project layer in prose, never as a path. A path that does not resolve where this file lands is a dead pointer.
 
+## 2026-08-21 — v2.3
+
+**Antigravity's read path confirmed**, and the adapter was in the wrong place. Antigravity reads workspace rules from `AGENTS.md` and `GEMINI.md` at the project root, and skills from `~/.gemini/config/skills/` (global) plus `.agents/skills/` (workspace).
+
+So the old adapter under the .agents directory was never read by anything — deleted. `GEMINI.md` replaces it as the Antigravity adapter, and `setup.sh` installs it. `.agents/skills/` needed no change: it already is the workspace skill directory Antigravity looks in.
+
+The machine bootstrap now symlinks the cross-project skills into `~/.gemini/config/skills/` as well, so Claude and Antigravity read the same files as the repo instead of three copies.
+
+**Managed `.gitignore` block.** `setup.sh` writes an idempotent block between `# >>> ag-agent-rules >>>` markers covering `.DS_Store`, `*.bak` (its own backups), `.claude/settings.local.json`, `.claude/skills/`, and `**/*service-account*.json`. It deliberately does **not** ignore `AGENTS.md`, `CONTEXT.md`, `.agents/skills/`, or `.ai/` — the agent layer has to travel with the repo, or Codex and Antigravity get nothing on a teammate's clone. It also does not blanket-ignore credential extensions: this project tracks `.p12` and `.mobileprovision` under `.github/resources/` for CI on purpose. When a matching file is already tracked, the script says so rather than letting the user assume it got hidden.
+
+**Two more instances of the backup-inside-a-scanned-directory bug.** `bootstrap-machine.sh` was writing `<name>.backup-<ts>` inside `~/.gemini/config/skills/`, where Antigravity loads it as another skill, and `ecc.backup-<ts>` inside `rules/`. Both now go to `~/.claude/backups/`. That is three occurrences of the same mistake in one day — treat "where does the backup land" as part of any cleanup, not an afterthought.
+
+**Validator went from 120s to 0.8s on a real project.** Its ambiguity check ran a fresh `find` per candidate, which walked `node_modules`. It now counts from the already-scoped file list.
+
 ## 2026-08-21 — v2.2
 
 **Facts replaced guesses.** The real project at `~/Documents/work/uniscore-mobile` was read and six statements in these rules were wrong:

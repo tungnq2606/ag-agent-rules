@@ -2,7 +2,7 @@
 
 This is the canonical instruction file for all coding agents in this repository.
 
-Agent-specific files such as `CLAUDE.md` and `.agents/AGENTS.md` are adapters only. Keep shared project rules here or in the referenced on-demand files; do not duplicate them across adapters.
+Agent-specific files such as `CLAUDE.md` and `GEMINI.md` are adapters only. Keep shared project rules here or in the referenced on-demand files; do not duplicate them across adapters.
 
 ## Project
 
@@ -157,7 +157,7 @@ The shared handoff lives at `.ai/memory/HANDOFF.md`.
 
 ### Agent-System Maintenance
 
-When substantially changing `AGENTS.md`, `CLAUDE.md`, `.agents/AGENTS.md`, memory protocols, or skills, use `.agents/skills/writing-for-agents/SKILL.md`.
+When substantially changing `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, memory protocols, or skills, use `.agents/skills/writing-for-agents/SKILL.md`.
 
 ### Documentation — Explicit Request Only
 
@@ -243,7 +243,7 @@ When instructions compete, use this order:
 5. Relevant project rule in `.ai/rules/`
 6. Relevant specialized skill in `.agents/skills/`
 7. Shared memory in `.ai/memory/`
-8. Agent-specific adapter (`CLAUDE.md`, `.agents/AGENTS.md`)
+8. Agent-specific adapter (`CLAUDE.md`, `GEMINI.md`)
 9. Agent-level global configuration outside this repository (`~/.claude/rules/`, `~/.codex/`, Antigravity global rules)
 
 A specialized skill may refine a workflow but must not silently override project architecture, approval gates, or verification policy.

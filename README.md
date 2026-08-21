@@ -6,7 +6,7 @@ Một nguồn canonical, ba adapter mỏng. Không agent nào có bộ luật ri
 
 ## Nguyên tắc thiết kế
 
-1. **Một canonical.** [AGENTS.md](AGENTS.md) là nguồn duy nhất. `CLAUDE.md` và `.agents/AGENTS.md` chỉ trỏ về nó.
+1. **Một canonical.** [AGENTS.md](AGENTS.md) là nguồn duy nhất. `CLAUDE.md` và `GEMINI.md` chỉ trỏ về nó.
 2. **Progressive disclosure.** Session start chỉ đọc `AGENTS.md` + `.ai/memory/COMPACT.md`. Rule và skill nạp khi routing yêu cầu, không nạp sẵn.
 3. **Proportional effort.** Quy trình nặng chỉ áp cho việc có blast radius lớn. Sửa một dòng copy không cần plan, không cần approval, không chạy full test suite.
 4. **Pointer phải sống.** Link chết còn tệ hơn không có link — agent với tới, không thấy gì, rồi tự bịa. Có CI check.
@@ -14,12 +14,11 @@ Một nguồn canonical, ba adapter mỏng. Không agent nào có bộ luật ri
 ## Layout
 
 ```
-AGENTS.md                     canonical — Codex đọc trực tiếp
+AGENTS.md                     canonical — Codex và Antigravity đọc trực tiếp
 CLAUDE.md                     adapter Claude Code
+GEMINI.md                     adapter Antigravity
 CONTEXT.md                    domain glossary
-.agents/
-  AGENTS.md                   adapter Antigravity
-  skills/                     skill dùng chung, nạp theo routing
+.agents/skills/               skill dùng chung — cũng là workspace skill của Antigravity
 .ai/
   rules/                      rule on-demand (code style, verification, security, ...)
   memory/                     COMPACT · STATE · HANDOFF · LESSONS
@@ -35,7 +34,15 @@ setup.sh                      cài tầng project vào một repo
 legacy/                       layout v1, không dùng nữa
 ```
 
-Hai tầng, một nguồn. Skill chỉ tồn tại một bản trong `.agents/skills/`; `~/.claude/skills/` và `.claude/skills/` đều là symlink trỏ về đó. Không có bản copy nào để lệch nhau.
+Hai tầng, một nguồn. Skill chỉ tồn tại một bản trong `.agents/skills/`; `.claude/skills/`, `~/.claude/skills/` và `~/.gemini/config/skills/` đều là symlink trỏ về đó. Không có bản copy nào để lệch nhau.
+
+Mỗi agent đọc gì:
+
+| Agent | Instruction | Skill |
+|---|---|---|
+| Codex | `AGENTS.md` | theo path mà `AGENTS.md` trỏ |
+| Claude Code | `CLAUDE.md` → `AGENTS.md` | `.claude/skills/` (symlink) + path |
+| Antigravity | `AGENTS.md` + `GEMINI.md` | workspace `.agents/skills/`, global `~/.gemini/config/skills/` |
 
 ## Máy mới
 

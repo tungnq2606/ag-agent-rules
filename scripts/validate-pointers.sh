@@ -109,7 +109,10 @@ while IFS= read -r file; do
       root)
         # Only ambiguous when a same-named file exists somewhere else too: then
         # the agent has more than one plausible target and may pick the wrong one.
-        twins=$(find "$ROOT" -name "$candidate" -not -path '*/.git/*' -not -path '*/legacy/*' | wc -l | tr -d ' ')
+        # Counted from the scanned list, not a fresh find — a find over a whole
+        # React Native project walks node_modules and takes minutes.
+        twins=$(grep -c "/$candidate\$" "$TMP/files" || true)
+        [ -n "$twins" ] || twins=0
         if [ "$twins" -gt 1 ]; then
           printf '%sWEAK%s %s → %s (%s files share this name; use a repo-relative path)\n' \
             "$YELLOW" "$NC" "$rel_file" "$candidate" "$twins" >> "$TMP/weak"

@@ -22,6 +22,11 @@ CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
 DRY_RUN="${DRY_RUN:-0}"
 FORCE="${FORCE:-0}"
 
+# Backups live outside every directory an agent scans. A backup left inside
+# rules/ is read as active configuration; one left inside skills/ is read as
+# another skill. Both have happened.
+BACKUP_ROOT="${BACKUP_ROOT:-$CLAUDE_HOME/backups/bootstrap-$(date +%Y%m%d%H%M%S)}"
+
 GREEN=$'\033[0;32m'; YELLOW=$'\033[0;33m'; CYAN=$'\033[0;36m'; RED=$'\033[0;31m'; NC=$'\033[0m'
 ok()   { printf '%s✓%s %s\n' "$GREEN" "$NC" "$1"; }
 info() { printf '%s→%s %s\n' "$CYAN" "$NC" "$1"; }
@@ -54,9 +59,9 @@ info "Agent-level rules"
 RULES_DEST="$CLAUDE_HOME/rules"
 
 if [ -d "$RULES_DEST/ecc" ] && [ "$FORCE" != "1" ] && [ "$DRY_RUN" != "1" ]; then
-  BACKUP="$RULES_DEST/ecc.backup-$(date +%Y%m%d%H%M%S)"
-  cp -R "$RULES_DEST/ecc" "$BACKUP"
-  warn "backed up existing rules to $BACKUP"
+  mkdir -p "$BACKUP_ROOT"
+  cp -R "$RULES_DEST/ecc" "$BACKUP_ROOT/rules-ecc"
+  warn "backed up existing rules to $BACKUP_ROOT/rules-ecc"
 fi
 
 if [ "$DRY_RUN" = "1" ]; then
@@ -70,40 +75,56 @@ echo
 
 # ----------------------------------------------------------------- 2. skills
 
-info "Cross-project skills (symlinked to the repo)"
-SKILLS_DEST="$CLAUDE_HOME/skills"
-[ "$DRY_RUN" = "1" ] || mkdir -p "$SKILLS_DEST"
+link_skills_into() {
+  local dest="$1" label="$2"
+  local linked=0 skipped=0 name src dst
 
-linked=0
-skipped=0
-for name in $MACHINE_SKILLS; do
-  src="$REPO/.agents/skills/$name"
-  dst="$SKILLS_DEST/$name"
+  [ "$DRY_RUN" = "1" ] || mkdir -p "$dest"
 
-  [ -d "$src" ] || { warn "missing in repo, skipped: $name"; continue; }
+  for name in $MACHINE_SKILLS; do
+    src="$REPO/.agents/skills/$name"
+    dst="$dest/$name"
 
-  if [ "$DRY_RUN" = "1" ]; then
-    printf '  would link %s -> %s\n' "$name" "$src"
-    continue
-  fi
+    [ -d "$src" ] || { warn "missing in repo, skipped: $name"; continue; }
 
-  if [ -L "$dst" ]; then
-    rm "$dst"
-  elif [ -e "$dst" ]; then
-    if [ "$FORCE" != "1" ]; then
-      warn "real directory exists, kept: $name (FORCE=1 to replace)"
-      skipped=$((skipped + 1))
+    if [ "$DRY_RUN" = "1" ]; then
+      printf '  would link %s/%s -> repo\n' "$label" "$name"
       continue
     fi
-    mv "$dst" "$dst.backup-$(date +%Y%m%d%H%M%S)"
-    warn "moved aside: $name"
-  fi
 
-  ln -s "$src" "$dst"
-  linked=$((linked + 1))
-done
+    if [ -L "$dst" ]; then
+      rm "$dst"
+    elif [ -e "$dst" ]; then
+      if [ "$FORCE" != "1" ]; then
+        warn "$label: real directory exists, kept: $name (FORCE=1 to replace)"
+        skipped=$((skipped + 1))
+        continue
+      fi
+      # Never leave the backup inside a directory the agent scans — a
+      # "<name>.backup-<ts>" sitting in skills/ is loaded as another skill.
+      mkdir -p "$BACKUP_ROOT"
+      mv "$dst" "$BACKUP_ROOT/$name"
+      warn "$label: moved aside to $BACKUP_ROOT/$name"
+    fi
 
-[ "$DRY_RUN" = "1" ] || ok "skills ($linked linked, $skipped kept)"
+    ln -s "$src" "$dst"
+    linked=$((linked + 1))
+  done
+
+  [ "$DRY_RUN" = "1" ] || ok "$label ($linked linked, $skipped kept)"
+}
+
+info "Cross-project skills (symlinked to the repo)"
+link_skills_into "$CLAUDE_HOME/skills" "~/.claude/skills"
+
+# Antigravity reads global skills from here, and workspace skills from a
+# project's own .agents/skills/. Only the global side needs linking.
+GEMINI_SKILLS="${GEMINI_SKILLS:-$HOME/.gemini/config/skills}"
+if [ -d "$(dirname "$GEMINI_SKILLS")" ] || [ -d "$GEMINI_SKILLS" ]; then
+  link_skills_into "$GEMINI_SKILLS" "~/.gemini/config/skills"
+else
+  warn "Antigravity not set up here, skipped: $GEMINI_SKILLS"
+fi
 echo
 
 # ------------------------------------------------------------------ 3. next

@@ -83,7 +83,20 @@ print("superpowers disabled")
 PY
 ```
 
-## 4. MCP servers
+## 4. Antigravity
+
+Antigravity reads, in this order:
+
+1. **Workspace rules** — `AGENTS.md` and `GEMINI.md` at the project root. Both are installed by `setup.sh`; `AGENTS.md` is canonical and `GEMINI.md` is the thin adapter.
+2. **Skills** — global from `~/.gemini/config/skills/`, workspace from `.agents/skills/` relative to the workspace root.
+
+`bootstrap-machine.sh` symlinks the cross-project skills into the global directory, so Antigravity and Claude read the same files as the repo. The workspace side needs nothing extra — `.agents/skills/` in the project *is* the workspace skill directory.
+
+The global directory may also hold skills that duplicate a workspace one, including a full copy of the superpowers set. `AGENTS.md` §External Skills decides which wins; the workspace copy is the one this repository maintains.
+
+There is no adapter file under the .agents directory — Antigravity never read one there. If an old project still has an AGENTS.md inside `.agents/`, delete it.
+
+## 5. MCP servers
 
 GitNexus needs installing and indexing per repository:
 
@@ -93,7 +106,7 @@ npx gitnexus@latest analyze
 
 Connector-based servers (Figma, Atlassian, Linear, Notion, Slack, and the rest) authenticate interactively per machine. Nothing to copy; sign in from an interactive session via `/mcp`.
 
-## 5. Verify the machine
+## 6. Verify the machine
 
 ```bash
 bash scripts/validate-pointers.sh          # 0 dead pointers
