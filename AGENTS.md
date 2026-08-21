@@ -223,7 +223,7 @@ Agents on this project may see skills from plugins and from user-global director
 | `code-review-rn`, `engineering:code-review`, `superpowers:requesting-code-review`, `code-review:code-review` | `.agents/skills/code-review/SKILL.md` |
 | `tdd-workflow`, `superpowers:test-driven-development` | `.agents/skills/tdd/SKILL.md` |
 | `verification-loop` | `.ai/rules/verification.md` and `.agents/skills/verification-before-completion/SKILL.md` |
-| `security-review` | `.ai/rules/security.md` |
+| `security-review`, `code-review:security-review` | `.ai/rules/security.md`, plus the Security section of `.agents/skills/code-review/SKILL.md` |
 | `coding-standards` | `.ai/rules/code-style.md` |
 | `search-first` | Task Routing above; check the registry before hand-rolling a utility, and get approval before adding a dependency |
 | `superpowers:writing-skills` | `.agents/skills/writing-for-agents/SKILL.md` |

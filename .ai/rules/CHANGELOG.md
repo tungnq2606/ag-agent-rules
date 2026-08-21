@@ -29,6 +29,12 @@ Record a change here when it alters what an agent does. A wording tidy-up that l
 
 **Machine layer.** `global/rules/` holds the three surviving agent-level rule files; `scripts/bootstrap-machine.sh` installs them and symlinks nine cross-project skills into `~/.claude/skills/`. `global/MACHINE-SETUP.md` documents settings, hooks, plugins, and MCP auth. Skills now exist in exactly one place, with symlinks from both consumers.
 
+**Global skills cleaned.** `~/.claude/skills/` went from 30 real directories to 15 real plus 9 symlinks into this repo. Retired: `code-architect`, `code-review-rn` (merged here), `coding-standards`, `search-first`, `security-review`, `tdd-workflow`, `verification-loop`. Kept untouched: the design/image skills, `output-skill`, and `gitnexus-pdg-query` / `gitnexus-taint-analysis` (for working on GitNexus internals, not on this app).
+
+**A backup inside `~/.claude/rules/` is loaded as rules.** The v2.1 backup at `~/.claude/rules/ecc.backup-20260821/` was being read as active configuration — the twelve removed files were still reaching the agent. All backups now live at `~/.claude/backups/`, outside every directory the agent loads. Never leave a backup under `rules/` or inside `skills/`.
+
+**Validator hardened.** `scripts/validate-pointers.sh` resolves four path forms — owner-relative with a leading dot, parent-relative with two, repo-relative starting from a directory that exists at the root, and a bare filename — each against the right base. A regression that silently reported 72 false positives was caught by injecting a known-bad link of each form and confirming exactly four findings.
+
 ## 2026-08-21 — v2.1
 
 **Conflict resolution.** The repository is now the single source of truth for every project matter. `~/.claude/rules/ecc/` was cut to three agent-level files (`~/.claude/rules/ecc/common/hooks.md`, `~/.claude/rules/ecc/common/performance.md`, `~/.claude/rules/ecc/typescript/hooks.md`); the twelve files stating project policy were removed. Backup at `~/.claude/rules/ecc.backup-20260821/`.

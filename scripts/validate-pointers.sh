@@ -47,13 +47,24 @@ resolve_kind() {
   candidate="$1"
   owner_dir="$2"
 
+  # Explicitly relative: resolve against the owning document's directory only.
   case "$candidate" in
-    .ai/*|.agents/*|.claude/*|scripts/*|legacy/*)
-      if [ -f "$ROOT/$candidate" ]; then printf 'owner'; else printf ''; fi
+    ./*|../*)
+      if [ -f "$owner_dir/$candidate" ]; then printf 'owner'; else printf ''; fi
       return ;;
   esac
 
-  stripped="${candidate#./}"
+  # A path whose first segment is a directory at the repo root is repo-relative.
+  case "$candidate" in
+    */*)
+      first="${candidate%%/*}"
+      if [ -d "$ROOT/$first" ]; then
+        if [ -f "$ROOT/$candidate" ]; then printf 'owner'; else printf ''; fi
+        return
+      fi ;;
+  esac
+
+  stripped="$candidate"
   for p in "$owner_dir/$stripped" "$owner_dir/references/$stripped" "$owner_dir/rules/$stripped"; do
     if [ -f "$p" ]; then printf 'owner'; return; fi
   done
