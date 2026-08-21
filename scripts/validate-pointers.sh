@@ -77,9 +77,18 @@ resolve_kind() {
   if [ -f "$ROOT/$stripped" ]; then printf 'root'; else printf ''; fi
 }
 
-find "$ROOT" -name '*.md' \
-  -not -path '*/.git/*' -not -path '*/legacy/*' -not -path '*/node_modules/*' \
-  | sort > "$TMP/files"
+# Scope: the agent-facing surface only. A project's own docs (website/, docs/,
+# vendored skills under .claude/) are not this system's to police, and scanning
+# them buries the findings that matter.
+{
+  for f in "$ROOT"/AGENTS.md "$ROOT"/CLAUDE.md "$ROOT"/CONTEXT.md "$ROOT"/README.md; do
+    [ -f "$f" ] && printf '%s\n' "$f"
+  done
+  for d in .agents .ai global scripts; do
+    [ -d "$ROOT/$d" ] && find "$ROOT/$d" -name '*.md' \
+      -not -path '*/node_modules/*' -not -path '*/.git/*'
+  done
+} | sort -u > "$TMP/files"
 
 file_count=$(wc -l < "$TMP/files" | tr -d ' ')
 

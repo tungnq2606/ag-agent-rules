@@ -4,6 +4,14 @@ Project: `uniscore-mobile`.
 
 Use GitNexus proportionally. Do not call it for every touched symbol.
 
+## The auto-generated block in AGENTS.md
+
+`npx gitnexus analyze` writes a block into `AGENTS.md` between `<!-- gitnexus:start -->` and `<!-- gitnexus:end -->`. It is regenerated on every analyze, so editing inside it does not stick.
+
+That block says to run impact analysis before editing **any** symbol, and to run `detect_changes()` before **every** commit. This file overrides both: proportional use, per the conditions below. The block is tool documentation, not this project's policy.
+
+Content outside the markers survives regeneration. Keep project rules there, or here.
+
 ## Impact Analysis
 
 Run impact analysis before implementation when:
