@@ -144,7 +144,26 @@ read -r -d '' BLOCK <<'IGNORE_BLOCK' || true
 **/*service-account*.json
 IGNORE_BLOCK
 
-if [ -f "$GITIGNORE" ] && grep -qF "$BEGIN" "$GITIGNORE"; then
+# Drop any pattern the project already ignores outside the block, so the managed
+# block never duplicates a line the repo owns. Comments and blanks always stay.
+if [ -f "$GITIGNORE" ]; then
+  OUTSIDE="$(mktemp)"
+  awk -v b="$BEGIN" -v e="$END" '
+    index($0, b) { skip = 1; next }
+    index($0, e) { skip = 0; next }
+    !skip
+  ' "$GITIGNORE" > "$OUTSIDE"
+
+  BLOCK="$(printf '%s\n' "$BLOCK" | awk -v out="$OUTSIDE" '
+    BEGIN { while ((getline line < out) > 0) seen[line] = 1 }
+    /^#/                     { blank = 0; print; next }
+    /^[[:space:]]*$/         { if (!blank) print; blank = 1; next }
+    !($0 in seen)            { blank = 0; print }
+  ')"
+  rm -f "$OUTSIDE"
+fi
+
+if grep -qF "$BEGIN" "$GITIGNORE" 2>/dev/null; then
   # Replace the existing block in place, leaving the rest of the file alone.
   awk -v b="$BEGIN" -v e="$END" '
     index($0, b) { skip = 1; print "@@BLOCK@@"; next }
