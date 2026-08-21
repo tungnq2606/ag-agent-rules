@@ -14,30 +14,51 @@ Một nguồn canonical, ba adapter mỏng. Không agent nào có bộ luật ri
 ## Layout
 
 ```
-AGENTS.md                    canonical — Codex đọc trực tiếp
-CLAUDE.md                    adapter Claude Code
-CONTEXT.md                   domain glossary
+AGENTS.md                     canonical — Codex đọc trực tiếp
+CLAUDE.md                     adapter Claude Code
+CONTEXT.md                    domain glossary
 .agents/
-  AGENTS.md                  adapter Antigravity
-  skills/                    skill dùng chung, nạp theo routing
+  AGENTS.md                   adapter Antigravity
+  skills/                     skill dùng chung, nạp theo routing
 .ai/
-  rules/                     rule on-demand (code style, verification, security, ...)
-  memory/                    COMPACT · STATE · HANDOFF · LESSONS
-  plans/                     plan được persist cho việc Large/Risky
-.claude/skills/              symlink để Skill tool của Claude discover được
-scripts/validate-pointers.sh CI check cho pointer chết
-legacy/                      layout v1, không dùng nữa
+  rules/                      rule on-demand (code style, verification, security, ...)
+  memory/                     COMPACT · STATE · HANDOFF · LESSONS
+  plans/                      plan được persist cho việc Large/Risky
+.claude/skills/               symlink để Skill tool của Claude discover được
+global/
+  rules/                      → ~/.claude/rules/ — chỉ rule tầng agent
+  MACHINE-SETUP.md            phần phải làm tay khi lên máy mới
+scripts/
+  bootstrap-machine.sh        cài tầng máy
+  validate-pointers.sh        CI check pointer chết
+setup.sh                      cài tầng project vào một repo
+legacy/                       layout v1, không dùng nữa
 ```
+
+Hai tầng, một nguồn. Skill chỉ tồn tại một bản trong `.agents/skills/`; `~/.claude/skills/` và `.claude/skills/` đều là symlink trỏ về đó. Không có bản copy nào để lệch nhau.
+
+## Máy mới
+
+```bash
+git clone git@github.com:tungnq2606/ag-agent-rules.git ~/dev/ag-agent-rules
+cd ~/dev/ag-agent-rules
+
+DRY_RUN=1 bash scripts/bootstrap-machine.sh   # xem trước
+bash scripts/bootstrap-machine.sh             # tầng máy
+```
+
+Phần còn lại (settings, hook, plugin, MCP auth) ở [global/MACHINE-SETUP.md](global/MACHINE-SETUP.md).
+
+Symlink trỏ vào đường dẫn clone. Di chuyển clone thì chạy lại script.
 
 ## Cài vào một project
 
 ```bash
-git clone git@github.com:tungnq2606/ag-agent-rules.git
 cd /path/to/your-project
-bash /path/to/ag-agent-rules/setup.sh
+bash ~/dev/ag-agent-rules/setup.sh
 
 # ghi đè file đã tồn tại (bản cũ giữ thành *.bak)
-FORCE=1 bash /path/to/ag-agent-rules/setup.sh
+FORCE=1 bash ~/dev/ag-agent-rules/setup.sh
 ```
 
 Script không ghi đè file có sẵn nếu không có `FORCE=1`. Sau khi chạy, phải sửa tay:
@@ -58,15 +79,20 @@ Script không ghi đè file có sẵn nếu không có `FORCE=1`. Sau khi chạy
 | [plan-work](.agents/skills/plan-work/SKILL.md) | Việc Large/Risky — plan + approval gate |
 | [codebase-design](.agents/skills/codebase-design/SKILL.md) | Module boundary, interface, seam |
 | [diagnosing-bugs](.agents/skills/diagnosing-bugs/SKILL.md) | Bug không rõ nguyên nhân sau khi soi trúng chỗ |
-| [code-review](.agents/skills/code-review/SKILL.md) | Review diff trước khi commit |
+| [triage-crash](.agents/skills/triage-crash/SKILL.md) | Crash Sentry, ANR, stack trace |
+| [code-review](.agents/skills/code-review/SKILL.md) | Review diff — có reference theo path |
+| [verification-before-completion](.agents/skills/verification-before-completion/SKILL.md) | Trước khi nói "xong / pass" |
 | [ship-change](.agents/skills/ship-change/SKILL.md) | Commit + PR |
-| [triage-crash](.agents/skills/triage-crash/SKILL.md) | Crash Sentry |
 | [tdd](.agents/skills/tdd/SKILL.md) | Chỉ khi user yêu cầu test-first |
 | [handoff](.agents/skills/handoff/SKILL.md) | Chuyển việc dở sang session/agent khác |
 | [document-feature](.agents/skills/document-feature/SKILL.md) | Chỉ khi user yêu cầu doc |
 | [writing-for-agents](.agents/skills/writing-for-agents/SKILL.md) | Sửa chính hệ instruction/skill này |
+| [react-native-project-rules](.agents/skills/react-native-project-rules/SKILL.md) | UI, list, nav, styling theo convention project |
+| [react-native-reanimated](.agents/skills/react-native-reanimated/SKILL.md) | Worklet, shared value, gesture, scroll-driven |
 | [react-native-best-practices](.agents/skills/react-native-best-practices/SKILL.md) | FPS, TTI, bundle, memory, native profiling |
-| [react-native-project-rules](.agents/skills/react-native-project-rules/SKILL.md) | Rule RN theo convention project |
+| `gitnexus-*` (7) | Impact analysis, explore, refactor, PR review |
+
+Skill từ plugin và từ `~/.claude/skills/` trùng việc với các skill trên: xem mục **External Skills** trong [AGENTS.md](AGENTS.md) — nó nói rõ cái nào adopted, cái nào retired.
 
 ## Bảo trì
 

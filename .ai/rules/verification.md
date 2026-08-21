@@ -34,7 +34,7 @@ Verify the affected code/diff.
 
 Run the narrowest relevant test if one exists and provides useful confidence.
 
-Run `yarn typecheck` only when TypeScript contracts may be affected.
+Type-check only when TypeScript contracts may be affected. There is no `typecheck` script; use `npx tsc --noEmit`.
 
 Do not run the full test suite by default.
 
@@ -49,8 +49,8 @@ Examples:
 
 Usually run:
 
-- `yarn typecheck`
-- relevant targeted tests
+- `npx tsc --noEmit`
+- `yarn test <path>` for the affected area
 
 Add other checks only when justified by the affected area.
 
@@ -65,7 +65,8 @@ Examples:
 
 Run:
 
-- `yarn typecheck`
+- `npx tsc --noEmit`
+- `yarn lint` when the change spans many files
 - relevant tests for the changed behavior
 
 Run full `yarn test` only when broad regression risk justifies it.

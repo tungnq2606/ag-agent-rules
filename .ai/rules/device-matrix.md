@@ -21,14 +21,13 @@ Verify on the environment that most exposes the change, not the one that is alre
 | Dark/light theme change | Both themes, plus a switch while the screen is open |
 | Native module, permission | A real device — the simulator lies about permissions and hardware |
 
-## Requirements to check, not assume
+## Minimum supported versions
 
-Read the minimum supported OS versions from the project rather than recalling them:
+Android `minSdk` 24 (Android 7.0), `target` 35. iOS deployment target 15.1.
 
-- Android: `minSdkVersion` in `android/build.gradle`
-- iOS: the deployment target in `ios/Podfile` and the Xcode project
+Verify on the minimum supported version when the change uses a platform API whose availability or behavior varies by version. That is where a version guard is either missing or wrong. Android 7 is a wide gap from Android 15 — a modern API used without a guard compiles fine and crashes on the floor.
 
-Verify on the minimum supported version when the change uses a platform API whose availability or behavior varies by version. That is where a version guard is either missing or wrong.
+Re-read `android/build.gradle` and `ios/Podfile` if these numbers look stale rather than trusting this line.
 
 ## Simulator versus device
 

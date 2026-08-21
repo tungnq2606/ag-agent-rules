@@ -36,7 +36,7 @@ function FollowButton({ onPress }: { onPress: () => void }) {
 **Correct:**
 
 ```tsx
-import CustomTouchableOpacity from '@/components/CustomTouchableOpacity'
+import CustomTouchableOpacity from 'components/button/CustomTouchableOpacity'
 
 function FollowButton({ onPress }: { onPress: () => void }) {
   return (

@@ -24,7 +24,7 @@ Adding another sheet library is a dependency change and needs explicit user appr
 **Correct:**
 
 ```tsx
-import BottomSheetModal from '@/components/BottomSheetModal'
+import BottomSheetModal from 'components/modals/BottomSheetModal'
 
 <BottomSheetModal visible={visible} onClose={close}>
   {children}

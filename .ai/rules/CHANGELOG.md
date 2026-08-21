@@ -4,6 +4,31 @@ Behavioral changes to `AGENTS.md`, `.ai/rules/`, `.agents/skills/`, and the agen
 
 Record a change here when it alters what an agent does. A wording tidy-up that leaves behavior unchanged does not belong. The point is to be able to roll back a rule that made agents worse, which requires knowing which rule changed and when.
 
+## 2026-08-21 — v2.2
+
+**Facts replaced guesses.** The real project at `~/Documents/work/uniscore-mobile` was read and six statements in these rules were wrong:
+
+| Was | Actually |
+|---|---|
+| `yarn typecheck` | no such script — `npx tsc --noEmit` |
+| Notifee | `@react-native-firebase/messaging` + MoEngage + AppsFlyer |
+| New Architecture unknown | Android `newArchEnabled=false`, iOS pods `RCT_NEW_ARCH_ENABLED=1` — mixed |
+| `@/components/...` alias | aliases are bare: `components/...`, `services/...` |
+| `src/navigation/` | `src/routers/`; Zustand in `src/zustands/` |
+| min versions unrecorded | Android `minSdk` 24 / target 35, iOS 15.1 |
+
+`build-release.md` now carries the real flavors (`dev`/`staging`/`beta`/`prod`), iOS schemes (`uniscore`, `uniscoreDev`, `uniscoreStag`, `uniscoreBeta`, `LiveScoreWidgetExtension`), env files, yarn scripts, and the ten fastlane lanes.
+
+**External skills settled.** `AGENTS.md` gained an **External Skills** section: four plugin skills adopted, eleven retired in favour of a skill in this repository. Includes the note that a session-start hook mandating a retired skill does not override this file.
+
+**code-review merged with `code-review-rn`.** The globally-installed `code-review-rn` skill's path-scoped structure was folded in as ten reference files (`components`, `typescript`, `redux`, `state-stores`, `api-services`, `hooks`, `routers`, `styles`, `android`, `ios`), corrected to the real stack — FastImage rather than FlashList, `AppList`, `src/routers/`, redux-persist migrations, no RTK Query push.
+
+**Two skills vendored** so all three agents can read them: `verification-before-completion` (MIT, from superpowers) and `react-native-reanimated` (Apache-2.0). Routed from `AGENTS.md`.
+
+**Borrowed into existing skills.** `plan-work` gained step interfaces (Consumes/Produces), a no-placeholders rule, and a self-review pass. `diagnosing-bugs` gained boundary instrumentation for multi-layer failures and the rule that three failed fixes means the design is wrong, not the hypothesis.
+
+**Machine layer.** `global/rules/` holds the three surviving agent-level rule files; `scripts/bootstrap-machine.sh` installs them and symlinks nine cross-project skills into `~/.claude/skills/`. `global/MACHINE-SETUP.md` documents settings, hooks, plugins, and MCP auth. Skills now exist in exactly one place, with symlinks from both consumers.
+
 ## 2026-08-21 — v2.1
 
 **Conflict resolution.** The repository is now the single source of truth for every project matter. `~/.claude/rules/ecc/` was cut to three agent-level files (`~/.claude/rules/ecc/common/hooks.md`, `~/.claude/rules/ecc/common/performance.md`, `~/.claude/rules/ecc/typescript/hooks.md`); the twelve files stating project policy were removed. Backup at `~/.claude/rules/ecc.backup-20260821/`.

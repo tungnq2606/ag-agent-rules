@@ -40,6 +40,24 @@ For visual, lifecycle, gesture, keyboard, safe-area, or native-platform bugs, a 
 
 Do not require a regression test when the project verification policy does not justify one.
 
+## Multi-layer failures: instrument the boundaries
+
+When the failure crosses components — JS → native module, saga → service → API, CI → build → signing, notification → navigation — do not guess which layer breaks. Log at each boundary once, then read.
+
+For each boundary: what value enters, what value exits, and whether the config or environment propagated. One run tells you which layer fails; only then investigate that layer.
+
+This replaces a sequence of hypotheses about five layers with one measurement.
+
+## Three failed fixes means the design is wrong
+
+Count the fixes you have attempted.
+
+Under three: return to evidence, form a new hypothesis with what the failed fix taught you.
+
+At three, stop. Do not attempt a fourth. The pattern where each fix reveals a new problem somewhere else, or where the next fix would need a large refactor, is not a run of bad hypotheses — it is a design that cannot hold the behavior being asked of it.
+
+Say so to the user, name what the three attempts revealed, and route through `.agents/skills/plan-work/SKILL.md` rather than continuing to patch.
+
 ## Investigation
 
 Start narrow.

@@ -59,7 +59,7 @@ Mock at the seam the module already depends on, and mock as little as possible.
 
 ```typescript
 // Network boundary — mock the service, not Axios internals
-jest.mock('@/services/match-service', () => ({
+jest.mock('services/match-service', () => ({
   fetchMatch: jest.fn(),
 }))
 

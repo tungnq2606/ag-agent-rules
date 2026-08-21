@@ -62,6 +62,39 @@ Add `Architecture / Data Flow` only when relevant.
 
 Do not paste large code blocks, full diffs, GitNexus output, or conversation history into the plan.
 
+## Interfaces between steps
+
+When steps depend on each other's output — and especially when the work may be finished in a later session or by another agent — name the contract instead of leaving it implied:
+
+    ### Step 3: <name>
+
+    Consumes: `fetchMatchTimeline(matchId: string): Promise<TimelineEvent[]>` from step 2
+    Produces: `useMatchTimeline(matchId: string): { events, isLoading }` for step 4
+
+The executor of a step sees the plan, not your reasoning. Exact names and types are how step 4 learns what step 3 called things. A name that drifts between steps — `clearLayers` in one, `clearFullLayers` in another — is a bug planted in advance.
+
+## No placeholders
+
+A step that does not say what to do is not a step. These are plan failures:
+
+- "TBD", "implement later", "fill in details"
+- "add appropriate error handling", "handle edge cases", "add validation" — which errors, which cases, validating what
+- "same as step N" — repeat it; steps get read out of order
+- a reference to a type, function, or file that no step defines
+- a step naming an outcome with no indication of where the change goes
+
+Vagueness in a plan converts into invention at implementation time, and invention is what the approval gate exists to prevent.
+
+## Self-review before presenting
+
+Read the plan once against the request, cold:
+
+1. **Coverage.** Every requirement in the request maps to a step. List anything unmapped.
+2. **Placeholders.** Scan for the patterns above.
+3. **Name consistency.** Types, functions, and files named in later steps match what earlier steps define.
+
+Fix what you find inline. Then present.
+
 ## Status
 
 Use only:

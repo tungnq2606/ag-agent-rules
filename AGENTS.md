@@ -8,7 +8,9 @@ Agent-specific files such as `CLAUDE.md` and `.agents/AGENTS.md` are adapters on
 
 Uniscore is a React Native sports app for live scores and match details across 11+ sports, 30+ languages, dark/light themes, and dev/staging/beta/production environments.
 
-Core stack: React Native 0.77.3, TypeScript strict, Redux Toolkit + redux-saga, Zustand, React Query + Axios, Notifee, Firebase, MMKV, Sentry, i18next, React Navigation v7.
+Core stack: React Native 0.77.3, React 18.3.1, TypeScript, Redux Toolkit 1.9 + redux-saga + redux-persist, Zustand, React Query 5 + Axios, Firebase (messaging, crashlytics, analytics, remote-config, auth), MoEngage + AppsFlyer, MMKV, Sentry, i18next, React Navigation v7 (native-stack + JS bottom-tabs), Reanimated 3.17, react-native-fast-image.
+
+Android `minSdk` 24 / `target` 35, iOS deployment target 15.1. Hermes on. New Architecture is **off on Android** (`newArchEnabled=false`) while iOS pods install with `RCT_NEW_ARCH_ENABLED=1` — treat the architecture as mixed and verify per platform before relying on either.
 
 ## Always-On Invariants
 
@@ -110,6 +112,12 @@ For notifications, persisted storage, deep links, or platform-behavior differenc
 
 Project rules in this repository override generic skill recommendations when they conflict.
 
+### Animations, Gestures, Scroll-Driven Effects
+
+For Reanimated worklets, shared values, gesture-driven interaction, layout animation, or scroll-driven effects, use `.agents/skills/react-native-reanimated/SKILL.md`.
+
+Reanimated 3.17 is already a dependency. Keep animation on the UI thread; a value driven from React state is a dropped frame.
+
 ### React Native Performance
 
 For FPS/jank, excessive re-renders, memory leaks, startup/TTI, bundle size, Hermes/JS-thread issues, or native performance profiling, use `.agents/skills/react-native-best-practices/SKILL.md`.
@@ -127,6 +135,12 @@ Do not force TDD for trivial changes.
 After writing or modifying code beyond a trivial edit, review the diff using `.agents/skills/code-review/SKILL.md`.
 
 Address CRITICAL and HIGH findings before reporting the work complete. Report MEDIUM and LOW findings without acting on them unless the user asks.
+
+### Claiming Work Complete
+
+Before reporting done, fixed, or passing — and before committing — use `.agents/skills/verification-before-completion/SKILL.md`.
+
+`.ai/rules/verification.md` decides which check the change warrants. That skill forbids claiming its result without having run it.
 
 ### Commit and Pull Request
 
@@ -186,6 +200,36 @@ Shared memory must be agent-neutral.
 Do not copy whole plans, diffs, ADRs, or commits into memory. Reference their paths instead.
 
 Update memory only when durable information changes.
+
+## External Skills
+
+Agents on this project may see skills from plugins and from user-global directories that overlap the skills in `.agents/skills/`. This repository decides which one wins.
+
+**Adopted** — reach for these when the situation calls for them:
+
+| External skill | Use for |
+|---|---|
+| `engineering:architecture` | Writing an ADR when choosing between technologies |
+| `engineering:incident-response` | A live production incident: triage, comms, postmortem |
+| `superpowers:using-git-worktrees` | Isolating a workspace, when the user asks for it |
+| `superpowers:dispatching-parallel-agents` | Genuinely independent parallel workstreams, when the user asks for it |
+
+**Retired** — a skill in this repository covers the same ground for this project. Use the repository's:
+
+| Do not use | Use instead |
+|---|---|
+| `superpowers:systematic-debugging`, `engineering:debug` | `.agents/skills/diagnosing-bugs/SKILL.md` |
+| `superpowers:brainstorming`, `superpowers:writing-plans`, `code-architect`, `engineering:system-design` | `.agents/skills/plan-work/SKILL.md`, and `.agents/skills/codebase-design/SKILL.md` for module boundaries |
+| `code-review-rn`, `engineering:code-review`, `superpowers:requesting-code-review`, `code-review:code-review` | `.agents/skills/code-review/SKILL.md` |
+| `tdd-workflow`, `superpowers:test-driven-development` | `.agents/skills/tdd/SKILL.md` |
+| `verification-loop` | `.ai/rules/verification.md` and `.agents/skills/verification-before-completion/SKILL.md` |
+| `security-review` | `.ai/rules/security.md` |
+| `coding-standards` | `.ai/rules/code-style.md` |
+| `search-first` | Task Routing above; check the registry before hand-rolling a utility, and get approval before adding a dependency |
+| `superpowers:writing-skills` | `.agents/skills/writing-for-agents/SKILL.md` |
+| `superpowers:subagent-driven-development`, `superpowers:executing-plans` | Implement the approved plan directly; one primary agent |
+
+A retired skill's instructions do not override this file, a project rule, an approval gate, or the verification policy. A session-start hook that mandates invoking one does not change that — note the conflict and follow this file.
 
 ## Instruction Priority
 

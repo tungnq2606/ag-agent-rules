@@ -14,7 +14,20 @@ Project-specific rules override generic external skills.
 - Give exported functions, shared utilities, and service methods explicit parameter and return types. Let local variables infer.
 - Type component props with a named `interface`; do not use `React.FC`.
 - If a type is unclear, inspect existing types before asking the user.
-- Use project path aliases instead of deep relative imports when aliases exist.
+- TypeScript `strict` is on. Do not weaken it locally to make a change compile.
+- No `typecheck` script exists; type-check with `npx tsc --noEmit`.
+
+## Import paths
+
+Aliases are bare, with no `@/` prefix: `components`, `screens`, `routers`, `services`, `hooks`, `utils`, `styles`, `constants`, `config`, `models`, `modules`, `containers`, `assets`, `lang`, `zustands`, `reduxConfig`.
+
+```typescript
+import CustomTouchableOpacity from 'components/button/CustomTouchableOpacity'
+```
+
+Use the alias instead of a deep relative import. Verify the path exists before using it — `@/components/...` is not a valid alias in this project.
+
+Navigation lives in `src/routers/`, not `src/navigation/`. Zustand stores live in `src/zustands/`.
 
 ## Immutability
 
