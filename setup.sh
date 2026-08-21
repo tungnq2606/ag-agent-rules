@@ -88,18 +88,27 @@ info "Claude native skill discovery (.claude/skills/)"
 CLAUDE_SKILLS="$TARGET_DIR/.claude/skills"
 mkdir -p "$CLAUDE_SKILLS"
 linked=0
+kept=0
 for skill_dir in "$TARGET_DIR"/.agents/skills/*/; do
   [ -d "$skill_dir" ] || continue
   name="$(basename "$skill_dir")"
   link="$CLAUDE_SKILLS/$name"
-  if [ -e "$link" ] || [ -L "$link" ]; then
-    [ "$FORCE" = "1" ] || continue
-    rm -rf "$link"
+
+  if [ -L "$link" ]; then
+    # A symlink we made before: safe to refresh.
+    rm "$link"
+  elif [ -e "$link" ]; then
+    # A real directory the project owns. Never delete it.
+    warn "project skill kept, not linked: $name"
+    kept=$((kept + 1))
+    continue
   fi
+
   ln -s "../../.agents/skills/$name" "$link"
   linked=$((linked + 1))
 done
-ok ".claude/skills/ ($linked symlink)"
+ok ".claude/skills/ ($linked symlink, $kept project-owned kept)"
+[ "$kept" -gt 0 ] && warn "A kept name shadows the shared skill. Rename one, or delete the project copy by hand."
 echo
 
 # -------------------------------------------------------------- 4. .gitignore
