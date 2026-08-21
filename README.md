@@ -1,95 +1,114 @@
-# agent-skills
+# ag-agent-rules
 
-Bộ skill, memory system, và templates cho các AI agents: **Claude · Gemini (Antigravity) · Codex**.
+Instruction, rule, và skill dùng chung cho ba coding agent — **Claude Code · Codex · Antigravity** — trên dự án React Native `uniscore-mobile`.
 
-## Quick Start (2 bước)
+Một nguồn canonical, ba adapter mỏng. Không agent nào có bộ luật riêng.
 
-### Bước 1: Chạy setup (tạo skeleton)
+## Nguyên tắc thiết kế
+
+1. **Một canonical.** [AGENTS.md](AGENTS.md) là nguồn duy nhất. `CLAUDE.md` và `GEMINI.md` chỉ trỏ về nó.
+2. **Progressive disclosure.** Session start chỉ đọc `AGENTS.md` + `.ai/memory/COMPACT.md`. Rule và skill nạp khi routing yêu cầu, không nạp sẵn.
+3. **Proportional effort.** Quy trình nặng chỉ áp cho việc có blast radius lớn. Sửa một dòng copy không cần plan, không cần approval, không chạy full test suite.
+4. **Pointer phải sống.** Link chết còn tệ hơn không có link — agent với tới, không thấy gì, rồi tự bịa. Có CI check.
+
+## Layout
+
+```
+AGENTS.md                     canonical — Codex và Antigravity đọc trực tiếp
+CLAUDE.md                     adapter Claude Code
+GEMINI.md                     adapter Antigravity
+CONTEXT.md                    domain glossary
+.agents/skills/               skill dùng chung — cũng là workspace skill của Antigravity
+.ai/
+  rules/                      rule on-demand (code style, verification, security, ...)
+  memory/                     COMPACT · STATE · HANDOFF · LESSONS
+  plans/                      plan được persist cho việc Large/Risky
+.claude/skills/               symlink để Skill tool của Claude discover được
+global/
+  rules/                      → ~/.claude/rules/ — chỉ rule tầng agent
+  MACHINE-SETUP.md            phần phải làm tay khi lên máy mới
+scripts/
+  bootstrap-machine.sh        cài tầng máy
+  validate-pointers.sh        CI check pointer chết
+setup.sh                      cài tầng project vào một repo
+legacy/                       layout v1, không dùng nữa
+```
+
+Hai tầng, một nguồn. Skill chỉ tồn tại một bản trong `.agents/skills/`; `.claude/skills/`, `~/.claude/skills/` và `~/.gemini/config/skills/` đều là symlink trỏ về đó. Không có bản copy nào để lệch nhau.
+
+Mỗi agent đọc gì:
+
+| Agent | Instruction | Skill |
+|---|---|---|
+| Codex | `AGENTS.md` | theo path mà `AGENTS.md` trỏ |
+| Claude Code | `CLAUDE.md` → `AGENTS.md` | `.claude/skills/` (symlink) + path |
+| Antigravity | `AGENTS.md` + `GEMINI.md` | workspace `.agents/skills/`, global `~/.gemini/config/skills/` |
+
+## Máy mới
 
 ```bash
-git clone https://github.com/<your-username>/agent-skills.git
+git clone git@github.com:tungnq2606/ag-agent-rules.git ~/dev/ag-agent-rules
+cd ~/dev/ag-agent-rules
+
+DRY_RUN=1 bash scripts/bootstrap-machine.sh   # xem trước
+bash scripts/bootstrap-machine.sh             # tầng máy
+```
+
+Phần còn lại (settings, hook, plugin, MCP auth) ở [global/MACHINE-SETUP.md](global/MACHINE-SETUP.md).
+
+Symlink trỏ vào đường dẫn clone. Di chuyển clone thì chạy lại script.
+
+## Cài vào một project
+
+```bash
 cd /path/to/your-project
-bash /path/to/agent-skills/setup.sh
+bash ~/dev/ag-agent-rules/setup.sh
+
+# ghi đè file đã tồn tại (bản cũ giữ thành *.bak)
+FORCE=1 bash ~/dev/ag-agent-rules/setup.sh
 ```
 
-Setup tự động tạo:
-- `~/.agents/skills/` — global skills (RN best practices, GitNexus)
-- `~/.gemini/antigravity/skills/` — Antigravity skills (14 skills)
-- `~/.agents/memory/` — global cross-project memory
-- `memory/` — project memory (8 files: COMPACT, INDEX, capture.sh, ...)
-- `CLAUDE.md`, `GEMINI.md` — instruction file templates
-- `.agent/scan-project.md` — scan prompt
+Script không ghi đè file có sẵn nếu không có `FORCE=1`. Sau khi chạy, phải sửa tay:
 
-### Bước 2: Chạy scan (AI auto-fill)
+| File | Sửa gì |
+|------|--------|
+| [AGENTS.md](AGENTS.md) | Section `Project` + `Always-On Invariants` theo stack thật |
+| [.ai/rules/code-style.md](.ai/rules/code-style.md) | Tên component thật, path alias, script |
+| [.ai/rules/verification.md](.ai/rules/verification.md) | Lệnh typecheck/test/build thật |
+| [.ai/rules/build-release.md](.ai/rules/build-release.md) | Environment, scheme iOS, gradle task Android |
 
-Mở bất kỳ AI agent nào (Claude, Gemini, Codex), paste prompt từ:
+Để `.ai/memory/*` rỗng cho tới khi có session tạo ra state thật. Memory rỗng là đúng; memory bịa là sai.
 
-```
-.agent/scan-project.md
-```
+## Skill
 
-Agent sẽ tự động:
-1. **Deep scan** codebase (package.json, structure, patterns, conventions)
-2. **Populate** `COMPACT.md`, `context.md` với tech stack thật
-3. **Generate** `CLAUDE.md`, `GEMINI.md` với rules project-specific
+| Skill | Khi nào |
+|-------|---------|
+| [plan-work](.agents/skills/plan-work/SKILL.md) | Việc Large/Risky — plan + approval gate |
+| [codebase-design](.agents/skills/codebase-design/SKILL.md) | Module boundary, interface, seam |
+| [diagnosing-bugs](.agents/skills/diagnosing-bugs/SKILL.md) | Bug không rõ nguyên nhân sau khi soi trúng chỗ |
+| [triage-crash](.agents/skills/triage-crash/SKILL.md) | Crash Sentry, ANR, stack trace |
+| [code-review](.agents/skills/code-review/SKILL.md) | Review diff — có reference theo path |
+| [verification-before-completion](.agents/skills/verification-before-completion/SKILL.md) | Trước khi nói "xong / pass" |
+| [ship-change](.agents/skills/ship-change/SKILL.md) | Commit + PR |
+| [tdd](.agents/skills/tdd/SKILL.md) | Chỉ khi user yêu cầu test-first |
+| [handoff](.agents/skills/handoff/SKILL.md) | Chuyển việc dở sang session/agent khác |
+| [document-feature](.agents/skills/document-feature/SKILL.md) | Chỉ khi user yêu cầu doc |
+| [writing-for-agents](.agents/skills/writing-for-agents/SKILL.md) | Sửa chính hệ instruction/skill này |
+| [react-native-project-rules](.agents/skills/react-native-project-rules/SKILL.md) | UI, list, nav, styling theo convention project |
+| [react-native-reanimated](.agents/skills/react-native-reanimated/SKILL.md) | Worklet, shared value, gesture, scroll-driven |
+| [react-native-best-practices](.agents/skills/react-native-best-practices/SKILL.md) | FPS, TTI, bundle, memory, native profiling |
+| `gitnexus-*` (7) | Impact analysis, explore, refactor, PR review |
 
-**Xong.** Agent đã sẵn sàng làm việc với full context.
+Skill từ plugin và từ `~/.claude/skills/` trùng việc với các skill trên: xem mục **External Skills** trong [AGENTS.md](AGENTS.md) — nó nói rõ cái nào adopted, cái nào retired.
 
-## Cấu trúc
-
-```
-agent-skills/
-├── agents-skills/              # → ~/.agents/skills/
-│   ├── react-native-best-practices/
-│   └── gitnexus-*/
-├── antigravity-skills/         # → ~/.gemini/antigravity/skills/
-│   ├── brainstorming/
-│   ├── executing-plans/
-│   └── ...  (14 skills)
-├── templates/                  # Instruction file templates
-│   ├── CLAUDE.md.template
-│   └── GEMINI.md.template
-├── scan-project.md             # Deep scan prompt
-├── setup.sh                    # Bootstrap script
-└── README.md
-```
-
-## Cập nhật skills
+## Bảo trì
 
 ```bash
-# Pull từ máy
-rsync -av --exclude='.DS_Store' ~/.agents/skills/ agents-skills/
-rsync -av --exclude='.DS_Store' --exclude='react-native-best-practices' \
-  ~/.gemini/antigravity/skills/ antigravity-skills/
-
-git add -A && git commit -m "chore: update skills" && git push
+bash scripts/validate-pointers.sh    # 0 dead pointer trước khi commit
 ```
 
-## Memory System
+Trước khi sửa `AGENTS.md`, adapter, memory protocol, hay skill: đọc [writing-for-agents](.agents/skills/writing-for-agents/SKILL.md).
 
-Mỗi project có `memory/` folder:
+## Instruction priority
 
-| File | Mục đích | Agent đọc? |
-|------|---------|:----------:|
-| `COMPACT.md` | Quick context (~30 dòng) | ⚡ ĐỌC TRƯỚC |
-| `INDEX.md` | Keyword → lesson mapping | 🔍 Khi cần search |
-| `context.md` | Project state chi tiết | Khi COMPACT chưa đủ |
-| `lessons-learned.md` | Lỗi → quy tắc | Smart-scan by tags |
-| `decisions.md` | Quyết định kiến trúc | Titles first |
-| `handoff.md` | Chuyển giao agent→agent | Luôn đọc |
-| `capture.sh` | Helper ghi session log | Agent gọi khi cần |
-
-Global memory: `~/.agents/memory/` (lessons áp dụng mọi project)
-
-## Tùy chọn
-
-```bash
-# Superpowers plugin (1 lần per máy)
-/plugin install superpowers@claude-plugins-official
-
-# AgentMemory server (persistent memory nâng cao)
-npm install -g @agentmemory/agentmemory
-
-# GitNexus (code intelligence)
-npx gitnexus@latest analyze
-```
+Khi rule đụng nhau, thứ tự ở [AGENTS.md](AGENTS.md#instruction-priority) là trọng tài. Rule global của từng agent (`~/.claude/rules/`, v.v.) đứng **dưới** project rule — chúng chỉ chứa thứ không thuộc project.

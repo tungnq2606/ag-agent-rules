@@ -1,0 +1,85 @@
+# Rule System Changelog
+
+Behavioral changes to `AGENTS.md`, `.ai/rules/`, `.agents/skills/`, and the agent adapters.
+
+Record a change here when it alters what an agent does. A wording tidy-up that leaves behavior unchanged does not belong. The point is to be able to roll back a rule that made agents worse, which requires knowing which rule changed and when.
+
+This file is installed into every project, so it must stay portable: name files that live outside the project layer in prose, never as a path. A path that does not resolve where this file lands is a dead pointer.
+
+## 2026-08-21 — v2.3
+
+**Antigravity's read path confirmed**, and the adapter was in the wrong place. Antigravity reads workspace rules from `AGENTS.md` and `GEMINI.md` at the project root, and skills from `~/.gemini/config/skills/` (global) plus `.agents/skills/` (workspace).
+
+So the old adapter under the .agents directory was never read by anything — deleted. `GEMINI.md` replaces it as the Antigravity adapter, and `setup.sh` installs it. `.agents/skills/` needed no change: it already is the workspace skill directory Antigravity looks in.
+
+The machine bootstrap now symlinks the cross-project skills into `~/.gemini/config/skills/` as well, so Claude and Antigravity read the same files as the repo instead of three copies.
+
+**Managed `.gitignore` block.** `setup.sh` writes an idempotent block between `# >>> ag-agent-rules >>>` markers covering `.DS_Store`, `*.bak` (its own backups), `.claude/settings.local.json`, `.claude/skills/`, and `**/*service-account*.json`. It deliberately does **not** ignore `AGENTS.md`, `CONTEXT.md`, `.agents/skills/`, or `.ai/` — the agent layer has to travel with the repo, or Codex and Antigravity get nothing on a teammate's clone. It also does not blanket-ignore credential extensions: this project tracks `.p12` and `.mobileprovision` under `.github/resources/` for CI on purpose. When a matching file is already tracked, the script says so rather than letting the user assume it got hidden.
+
+**Two more instances of the backup-inside-a-scanned-directory bug.** `bootstrap-machine.sh` was writing `<name>.backup-<ts>` inside `~/.gemini/config/skills/`, where Antigravity loads it as another skill, and `ecc.backup-<ts>` inside `rules/`. Both now go to `~/.claude/backups/`. That is three occurrences of the same mistake in one day — treat "where does the backup land" as part of any cleanup, not an afterthought.
+
+**Validator went from 120s to 0.8s on a real project.** Its ambiguity check ran a fresh `find` per candidate, which walked `node_modules`. It now counts from the already-scoped file list.
+
+## 2026-08-21 — v2.2
+
+**Facts replaced guesses.** The real project at `~/Documents/work/uniscore-mobile` was read and six statements in these rules were wrong:
+
+| Was | Actually |
+|---|---|
+| `yarn typecheck` | no such script — `npx tsc --noEmit` |
+| Notifee | `@react-native-firebase/messaging` + MoEngage + AppsFlyer |
+| New Architecture unknown | Android `newArchEnabled=false`, iOS pods `RCT_NEW_ARCH_ENABLED=1` — mixed |
+| `@/components/...` alias | aliases are bare: `components/...`, `services/...` |
+| `src/navigation/` | `src/routers/`; Zustand dir is `src/zustand/` while its alias is `zustands` |
+| min versions unrecorded | Android `minSdk` 24 / target 35, iOS 15.1 |
+
+`build-release.md` now carries the real flavors (`dev`/`staging`/`beta`/`prod`), iOS schemes (`uniscore`, `uniscoreDev`, `uniscoreStag`, `uniscoreBeta`, `LiveScoreWidgetExtension`), env files, yarn scripts, and the ten fastlane lanes.
+
+**External skills settled.** `AGENTS.md` gained an **External Skills** section: four plugin skills adopted, eleven retired in favour of a skill in this repository. Includes the note that a session-start hook mandating a retired skill does not override this file.
+
+**code-review merged with `code-review-rn`.** The globally-installed `code-review-rn` skill's path-scoped structure was folded in as ten reference files (`components`, `typescript`, `redux`, `state-stores`, `api-services`, `hooks`, `routers`, `styles`, `android`, `ios`), corrected to the real stack — FastImage rather than FlashList, `AppList`, `src/routers/`, redux-persist migrations, no RTK Query push.
+
+**Two skills vendored** so all three agents can read them: `verification-before-completion` (MIT, from superpowers) and `react-native-reanimated` (Apache-2.0). Routed from `AGENTS.md`.
+
+**Borrowed into existing skills.** `plan-work` gained step interfaces (Consumes/Produces), a no-placeholders rule, and a self-review pass. `diagnosing-bugs` gained boundary instrumentation for multi-layer failures and the rule that three failed fixes means the design is wrong, not the hypothesis.
+
+**Machine layer.** `global/rules/` holds the three surviving agent-level rule files; `scripts/bootstrap-machine.sh` installs them and symlinks nine cross-project skills into `~/.claude/skills/`. A machine-setup document in the rules repo covers settings, hooks, plugins, and MCP auth. Skills now exist in exactly one place, with symlinks from both consumers.
+
+**Global skills cleaned.** `~/.claude/skills/` went from 30 real directories to 15 real plus 9 symlinks into this repo. Retired: `code-architect`, `code-review-rn` (merged here), `coding-standards`, `search-first`, `security-review`, `tdd-workflow`, `verification-loop`. Kept untouched: the design/image skills, `output-skill`, and `gitnexus-pdg-query` / `gitnexus-taint-analysis` (for working on GitNexus internals, not on this app).
+
+**A backup inside `~/.claude/rules/` is loaded as rules.** The v2.1 backup at `~/.claude/rules/ecc.backup-20260821/` was being read as active configuration — the twelve removed files were still reaching the agent. All backups now live at `~/.claude/backups/`, outside every directory the agent loads. Never leave a backup under `rules/` or inside `skills/`.
+
+**Validator hardened.** `scripts/validate-pointers.sh` resolves four path forms — owner-relative with a leading dot, parent-relative with two, repo-relative starting from a directory that exists at the root, and a bare filename — each against the right base. A regression that silently reported 72 false positives was caught by injecting a known-bad link of each form and confirming exactly four findings.
+
+## 2026-08-21 — v2.1
+
+**Conflict resolution.** The repository is now the single source of truth for every project matter. `~/.claude/rules/ecc/` was cut to three agent-level files (`~/.claude/rules/ecc/common/hooks.md`, `~/.claude/rules/ecc/common/performance.md`, `~/.claude/rules/ecc/typescript/hooks.md`); the twelve files stating project policy were removed. Backup at `~/.claude/rules/ecc.backup-20260821/`.
+
+Conflicts resolved in favor of this repository:
+
+| Topic | Was (global) | Now |
+|---|---|---|
+| TDD | mandatory, 80% coverage | on request only — `AGENTS.md` §TDD |
+| Test runs | three test types required | proportional — `.ai/rules/verification.md` |
+| Subagents | always parallelize | main agent for routine work — `CLAUDE.md` |
+| Pre-implementation | `gh search` required | routed by blast radius — `AGENTS.md` §Task Routing |
+| File size | 800 lines | ~300 lines — `.ai/rules/code-style.md` |
+| E2E framework | Playwright | not specified; Playwright is wrong for React Native |
+| Validation | Zod required | narrow at the boundary; no new dependency |
+| `enum` | allowed for interop | never — string literal unions |
+
+`AGENTS.md` §Instruction Priority gained a ninth rank for agent-level global configuration, below everything in the repository.
+
+**New rules.** `.ai/rules/security.md`, `.ai/rules/build-release.md`, `.ai/rules/native-platform.md`, `.ai/rules/device-matrix.md`. `.ai/rules/verification.md` gained a Performance Budget section; `.ai/rules/code-style.md` gained Immutability, Localization, and Accessibility.
+
+**New skills.** `code-review`, `ship-change`, `triage-crash`. `AGENTS.md` routes to all three.
+
+**Renamed skill.** `vercel-react-native-skills` → `react-native-project-rules`. Ten Expo-only or inapplicable rules removed; `ui-pressable`, `ui-styling`, `ui-native-modals`, `list-performance-virtualize`, `navigation-native-navigators` rewritten against this project's components.
+
+**Pointers.** Five dead pointers fixed: codebase-design's DEEPENING and DESIGN-IT-TWICE references folded into its own body, tdd's two test references merged into `.agents/skills/tdd/tests.md`, and `.agents/skills/writing-for-agents/SKILL-MECHANICS.md` written. `scripts/validate-pointers.sh` added and now gates changes. GitNexus skill bodies vendored into `.agents/skills/` so Codex and Antigravity can read them. `.claude/skills/` symlinks added for Claude skill discovery.
+
+**Bootstrap.** The v1 setup script and scan prompt moved under legacy/; a v2 setup script replaces them. The repository README was rewritten.
+
+## 2026-08-21 — v2.0
+
+Migration from the v1 layout (`agents-skills/`, `antigravity-skills/`, `templates/`, `memory/`) to v2 (`AGENTS.md` canonical, `.agents/skills/`, `.ai/`). Committed as `chore: complete v2 agent-rules layout and fix bootstrap`.
