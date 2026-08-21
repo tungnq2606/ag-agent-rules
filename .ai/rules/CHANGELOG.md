@@ -4,6 +4,8 @@ Behavioral changes to `AGENTS.md`, `.ai/rules/`, `.agents/skills/`, and the agen
 
 Record a change here when it alters what an agent does. A wording tidy-up that leaves behavior unchanged does not belong. The point is to be able to roll back a rule that made agents worse, which requires knowing which rule changed and when.
 
+This file is installed into every project, so it must stay portable: name files that live outside the project layer in prose, never as a path. A path that does not resolve where this file lands is a dead pointer.
+
 ## 2026-08-21 — v2.2
 
 **Facts replaced guesses.** The real project at `~/Documents/work/uniscore-mobile` was read and six statements in these rules were wrong:
@@ -27,7 +29,7 @@ Record a change here when it alters what an agent does. A wording tidy-up that l
 
 **Borrowed into existing skills.** `plan-work` gained step interfaces (Consumes/Produces), a no-placeholders rule, and a self-review pass. `diagnosing-bugs` gained boundary instrumentation for multi-layer failures and the rule that three failed fixes means the design is wrong, not the hypothesis.
 
-**Machine layer.** `global/rules/` holds the three surviving agent-level rule files; `scripts/bootstrap-machine.sh` installs them and symlinks nine cross-project skills into `~/.claude/skills/`. `global/MACHINE-SETUP.md` documents settings, hooks, plugins, and MCP auth. Skills now exist in exactly one place, with symlinks from both consumers.
+**Machine layer.** `global/rules/` holds the three surviving agent-level rule files; `scripts/bootstrap-machine.sh` installs them and symlinks nine cross-project skills into `~/.claude/skills/`. A machine-setup document in the rules repo covers settings, hooks, plugins, and MCP auth. Skills now exist in exactly one place, with symlinks from both consumers.
 
 **Global skills cleaned.** `~/.claude/skills/` went from 30 real directories to 15 real plus 9 symlinks into this repo. Retired: `code-architect`, `code-review-rn` (merged here), `coding-standards`, `search-first`, `security-review`, `tdd-workflow`, `verification-loop`. Kept untouched: the design/image skills, `output-skill`, and `gitnexus-pdg-query` / `gitnexus-taint-analysis` (for working on GitNexus internals, not on this app).
 
