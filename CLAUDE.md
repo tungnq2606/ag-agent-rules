@@ -23,10 +23,14 @@ Do not duplicate shared project rules in this file.
 
 ## Skills
 
-Canonical shared skills live in `.agents/skills/`.
+Skill bodies live in `.agents/skills/`. `.claude/skills/` holds one symlink per skill so the `Skill` tool can discover them; the symlinks carry no content of their own.
 
-Where Claude native skill discovery is required, expose the selected shared skills through `.claude/skills/` without maintaining separate skill bodies.
+Follow the mandatory routing in `AGENTS.md`. A skill reached by routing is read at its `.agents/skills/` path.
 
-Follow the mandatory routing in `AGENTS.md`.
+## Global Configuration
+
+`~/.claude/rules/` holds agent-level configuration only — model choice, hooks, editor behavior. It ranks below this repository on every project matter. When something there states a testing policy, review policy, workflow, or code convention for this project, `AGENTS.md` wins; report the stale global rule rather than following it.
+
+## Handoff
 
 When the session becomes large or unfinished work should continue elsewhere, use the shared `handoff` workflow instead of carrying the full conversation forward.

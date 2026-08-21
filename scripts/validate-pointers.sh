@@ -87,10 +87,13 @@ while IFS= read -r file; do
     case "$(resolve_kind "$candidate" "$owner_dir")" in
       owner) : ;;
       root)
-        case "$rel_file" in
-          */*) printf '%sWEAK%s %s → %s (resolves only at repo root)\n' \
-                 "$YELLOW" "$NC" "$rel_file" "$candidate" >> "$TMP/weak" ;;
-        esac
+        # Only ambiguous when a same-named file exists somewhere else too: then
+        # the agent has more than one plausible target and may pick the wrong one.
+        twins=$(find "$ROOT" -name "$candidate" -not -path '*/.git/*' -not -path '*/legacy/*' | wc -l | tr -d ' ')
+        if [ "$twins" -gt 1 ]; then
+          printf '%sWEAK%s %s → %s (%s files share this name; use a repo-relative path)\n' \
+            "$YELLOW" "$NC" "$rel_file" "$candidate" "$twins" >> "$TMP/weak"
+        fi
         ;;
       *) printf '%sDEAD%s %s → %s\n' "$RED" "$NC" "$rel_file" "$candidate" >> "$TMP/dead" ;;
     esac

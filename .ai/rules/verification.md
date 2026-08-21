@@ -78,7 +78,27 @@ After relevant Android/Kotlin changes, use:
 
 `cd android && ./gradlew :app:kaptGenerateStubsStagingDebugKotlin`
 
-Run device/simulator verification when the changed behavior depends on runtime layout, navigation, native APIs, lifecycle, gestures, keyboard behavior, safe areas, or platform-specific code.
+For iOS, native, dependency, or environment-configuration changes, read `.ai/rules/build-release.md` — it covers when a native rebuild is required and where the real scheme and variant names live.
+
+Run device/simulator verification when the changed behavior depends on runtime layout, navigation, native APIs, lifecycle, gestures, keyboard behavior, safe areas, notifications, persisted state, or locale. `.ai/rules/device-matrix.md` says which device and OS version the change needs.
+
+## Performance Budget
+
+Performance work needs a number to move. Without one, an optimization cannot be verified and should not be made.
+
+Measure before changing, and report both numbers. Measurement method matters more than the target:
+
+| Dimension | How to measure | Target |
+|---|---|---|
+| Cold-start TTI | `react-native-performance` markers, cold starts only — exclude warm, hot, and prewarm | not yet recorded |
+| Bundle size | production bundle, minified, per platform | not yet recorded |
+| List scroll FPS | on the lowest-end supported Android device, never a simulator | no sustained drop below 55 |
+| Frame drops during animation | UI-thread frame timing while the animation runs | no dropped frame in a steady-state animation |
+| Memory after navigating a flow and returning | heap snapshot before and after, repeated three times | flat, not growing |
+
+Targets marked "not yet recorded" must be measured once on the current release and written down here. An unrecorded target means the first measurement becomes the baseline, not that any number is acceptable.
+
+Profiling method and deeper analysis: `.agents/skills/react-native-best-practices/SKILL.md`.
 
 ## Rules
 

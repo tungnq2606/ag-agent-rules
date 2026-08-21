@@ -10,8 +10,24 @@ Project-specific rules override generic external skills.
 - Use `type` for other aliases.
 - Never use `enum`; use string literal unions.
 - Never use `any` without explicit user approval.
+- Use `unknown` for data crossing a boundary (API response, deep-link parameter, notification payload, caught error), then narrow it.
+- Give exported functions, shared utilities, and service methods explicit parameter and return types. Let local variables infer.
+- Type component props with a named `interface`; do not use `React.FC`.
 - If a type is unclear, inspect existing types before asking the user.
 - Use project path aliases instead of deep relative imports when aliases exist.
+
+## Immutability
+
+Return a new value instead of changing the one you were given.
+
+```typescript
+// Returns a new object
+function withName(user: Readonly<User>, name: string): User {
+  return { ...user, name }
+}
+```
+
+Applies to Redux reducer logic outside Immer's draft, Zustand `set`, arrays (`toSorted`/spread rather than `sort` in place), and any helper receiving an object it does not own. Inside an Immer draft or a `useRef` container, local assignment is the intended pattern.
 
 ## Components
 
@@ -78,11 +94,26 @@ Never branch away the inset with a fixed Android padding.
 
 If keyboard offset already includes the inset, avoid double-counting it.
 
-## Generated Files
+## Localization
 
-Never edit `src/lang/` directly.
+The app ships 30+ languages, so every string is a layout risk as well as a translation.
 
-Run `yarn lang` when localization generation is required.
+- Never edit `src/lang/` directly; run `yarn lang`.
+- Every user-facing string goes through the translation layer. No literal copy in a component.
+- Use the i18next plural form (`count`) rather than building a plural with a conditional.
+- Interpolate values; never concatenate a translated fragment with a variable, because word order differs per language.
+- Format numbers, dates, and relative times through the locale-aware helper, not by string arithmetic.
+- Give text room to grow: German and Russian run considerably longer than English, and Vietnamese wraps differently. Prefer flexible height with wrapping over a fixed height, and set `numberOfLines` deliberately when truncation is the intended behavior.
+- Check the longest available locale when a layout is tight, not only English.
+
+## Accessibility
+
+- Every pressable needs an `accessibilityLabel` describing the action, plus `accessibilityRole`.
+- Give small targets a hit area of at least 44×44, using `hitSlop` when the visual is smaller.
+- Icon-only controls need a label — the icon name is not one.
+- Announce loading and error state changes so a screen reader user learns the outcome.
+- Read colors from the theme so both dark and light stay legible; do not hardcode a hex that only works in one theme.
+- Allow text to scale with the OS font-size setting on screens carrying primary content.
 
 ## Hygiene
 

@@ -110,5 +110,6 @@ Good interfaces make testing natural:
 
 ## Going deeper
 
-- **Deepening a cluster given its dependencies**, see [DEEPENING.md](DEEPENING.md): dependency categories, seam discipline, and replace-don't-layer testing.
-- **Exploring alternative interfaces**, see [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md): spin up parallel sub-agents to design the interface several radically different ways, then compare on depth, locality, and seam placement.
+**Deepening a cluster.** When several shallow modules sit together, the move is usually to absorb them behind one interface rather than to add a layer above them. Sort their dependencies first: the ones only this cluster uses go inside; the ones callers also need stay at the interface. Then test through the new interface and delete the old tests instead of layering new ones on top of them — a test suite that survives the refactor untouched was testing the wrong seam.
+
+**Design it twice.** Before committing to an interface, sketch a second one that is *radically* different (not the same shape with renamed methods) and compare them on depth, locality, and seam placement. The second sketch is cheap and routinely exposes that the first one leaked a decision the caller should never have seen.

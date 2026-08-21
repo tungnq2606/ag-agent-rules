@@ -1,51 +1,30 @@
 # Uniscore Domain Context
 
-This file is the shared domain glossary for coding agents.
-
-It contains domain vocabulary only. Do not store task progress, implementation state, handoffs, temporary debugging notes, or agent-specific instructions here.
-
-Use code, API contracts, product documentation, and confirmed user guidance as the source of truth for exact semantics.
-
-## Known Domain Scope
+Domain glossary. Vocabulary only — no task progress, implementation state, handoffs, or agent instructions.
 
 Uniscore is a multi-sport application centered on live scores and match details.
 
-## Terms
+## Status
 
-### Sport
+**Unpopulated.** Nothing below has been confirmed against the code yet, so this file currently saves no lookups.
 
-A top-level sport category used to organize sport-specific data and UI.
+Populate it the first time a session resolves one of the questions below from the codebase, and record the confirmed answer rather than a description of where to look. A term whose entry says "check the code" costs context and returns nothing.
 
-Exact identifiers and supported values must come from the existing code/API.
+## Terms to confirm
 
-### Match
+| Term | What to record once confirmed |
+|------|-------------------------------|
+| Sport | The real identifier set and how sport-specific data and UI are keyed off it |
+| Match | The lifecycle and the fields that live-score and match-detail flows actually rely on |
+| Match Status | The exact string-literal union and its backend mapping. No new enum — see `.ai/rules/code-style.md` |
+| Competition | The repository's own term for the grouping, and whether it is always present |
+| Season | What season identity is, and where it comes from |
 
-A sporting event represented in live-score and match-detail flows.
+Add a row's answer inline as a short section once it is confirmed. Remove the row from this table at the same time.
 
-Do not assume fields, lifecycle states, or participant structure without checking the existing model/API.
+## Maintenance
 
-### Match Status
-
-The lifecycle/status of a match.
-
-Use existing project string-literal types and backend mappings. Do not introduce a new enum.
-
-### Competition
-
-A grouping or competition context associated with matches when present in the existing data model.
-
-Use the repository/API terminology exactly.
-
-### Season
-
-A competition-related period/edition when present in the existing data model.
-
-Do not infer season behavior from UI component names alone.
-
-## Glossary Maintenance
-
-Add or change a term only when its meaning is confirmed and durable.
-
-Prefer domain language over implementation names when documenting concepts.
-
-If two parts of the codebase use conflicting terminology, record the confirmed canonical term here after the conflict is resolved.
+- Record a term only when its meaning is confirmed and durable.
+- Prefer domain language over implementation names.
+- When two parts of the codebase disagree on a term, record the canonical one here after the disagreement is settled — that is exactly what this file is for.
+- Source of truth order: code, API contract, product documentation, confirmed user guidance.

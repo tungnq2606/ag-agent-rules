@@ -92,9 +92,21 @@ If the cause remains unclear, the issue is intermittent, several plausible hypot
 
 Do not invoke the full diagnostic workflow for an obvious local bug.
 
+### Crash / Sentry Issue
+
+For a reported crash, an ANR, or a Sentry issue, use `.agents/skills/triage-crash/SKILL.md`.
+
+### Security-Sensitive Change
+
+Read `.ai/rules/security.md` before changing authentication, session or token handling, storage of user data, deep-link or push-payload handling, WebView configuration, network security configuration, payment flows, or native permissions.
+
+A CRITICAL finding stops implementation and goes to the user.
+
 ### React Native Implementation
 
-For non-trivial React Native-specific UI, rendering, lists, animations, navigation behavior, or native-platform concerns, consult `.agents/skills/vercel-react-native-skills/SKILL.md`. 
+For non-trivial React Native-specific UI, rendering, lists, animations, or navigation behavior, consult `.agents/skills/react-native-project-rules/SKILL.md`.
+
+For notifications, persisted storage, deep links, or platform-behavior differences, read `.ai/rules/native-platform.md`.
 
 Project rules in this repository override generic skill recommendations when they conflict.
 
@@ -109,6 +121,18 @@ Do not apply performance optimizations without evidence or a concrete performanc
 Use `.agents/skills/tdd/SKILL.md` only when the user requests test-first/TDD, or an approved plan explicitly identifies a valuable regression-test seam.
 
 Do not force TDD for trivial changes.
+
+### Code Review
+
+After writing or modifying code beyond a trivial edit, review the diff using `.agents/skills/code-review/SKILL.md`.
+
+Address CRITICAL and HIGH findings before reporting the work complete. Report MEDIUM and LOW findings without acting on them unless the user asks.
+
+### Commit and Pull Request
+
+When the user asks for a commit or a pull request, use `.agents/skills/ship-change/SKILL.md`.
+
+Do not commit or push work the user has not asked to be committed.
 
 ### Handoff
 
@@ -140,8 +164,12 @@ Documentation may appear in a plan as an optional follow-up, but it MUST NOT be 
 
 Read only when relevant:
 
-- Application conventions → `.ai/rules/code-style.md`
-- Testing and verification → `.ai/rules/verification.md`
+- Application conventions, TypeScript, immutability, localization, accessibility → `.ai/rules/code-style.md`
+- Testing, verification, performance budget → `.ai/rules/verification.md`
+- Secrets, tokens, logging, deep links, WebView, permissions → `.ai/rules/security.md`
+- Environments, schemes, gradle tasks, native rebuild triggers → `.ai/rules/build-release.md`
+- Notifications, MMKV persistence, deep links, New Architecture status → `.ai/rules/native-platform.md`
+- Devices and OS versions to verify on → `.ai/rules/device-matrix.md`
 - GitNexus usage → `.ai/rules/gitnexus.md`
 - Documentation → `.ai/rules/documentation.md`
 
@@ -149,10 +177,10 @@ Read only when relevant:
 
 Shared memory must be agent-neutral.
 
-- `COMPACT.md` is a small current snapshot and pointer map.
-- `STATE.md` stores deeper current implementation/project state.
-- `HANDOFF.md` stores only live continuation state.
-- `LESSONS.md` stores durable reusable lessons.
+- `.ai/memory/COMPACT.md` is a small current snapshot and pointer map.
+- `.ai/memory/STATE.md` stores deeper current implementation/project state.
+- `.ai/memory/HANDOFF.md` stores only live continuation state.
+- `.ai/memory/LESSONS.md` stores durable reusable lessons.
 - `CONTEXT.md` stores domain vocabulary, not implementation progress.
 
 Do not copy whole plans, diffs, ADRs, or commits into memory. Reference their paths instead.
@@ -167,9 +195,12 @@ When instructions compete, use this order:
 2. Safety and correctness
 3. Approved active plan
 4. This `AGENTS.md`
-5. Relevant project rule
-6. Relevant specialized skill
-7. Shared memory
-8. Agent-specific adapter
+5. Relevant project rule in `.ai/rules/`
+6. Relevant specialized skill in `.agents/skills/`
+7. Shared memory in `.ai/memory/`
+8. Agent-specific adapter (`CLAUDE.md`, `.agents/AGENTS.md`)
+9. Agent-level global configuration outside this repository (`~/.claude/rules/`, `~/.codex/`, Antigravity global rules)
 
 A specialized skill may refine a workflow but must not silently override project architecture, approval gates, or verification policy.
+
+Global configuration outside this repository holds only agent-level concerns — model choice, hooks, editor behavior. When it states anything about this project's testing policy, review policy, workflow, or code conventions, this repository wins and the global statement is stale: report it rather than following it.

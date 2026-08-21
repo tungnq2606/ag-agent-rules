@@ -51,8 +51,18 @@ For regression comparison against the normal development branch, use `app-develo
 
 Do not run `detect_changes()` for trivial non-code edits unless the commit workflow specifically requires it.
 
-## Existing GitNexus Skills
+## GitNexus Skills
 
-Use GitNexus-specific skill/reference material only when the corresponding GitNexus workflow is actually needed.
+Skills live in `.agents/skills/`. Read one only when its workflow is actually needed:
+
+| Skill | Use for |
+|-------|---------|
+| `.agents/skills/gitnexus-impact-analysis/SKILL.md` | What breaks if this changes |
+| `.agents/skills/gitnexus-exploring/SKILL.md` | How does this work, what calls this |
+| `.agents/skills/gitnexus-debugging/SKILL.md` | Tracing an error to its source |
+| `.agents/skills/gitnexus-refactoring/SKILL.md` | Semantic rename, extract, move |
+| `.agents/skills/gitnexus-pr-review/SKILL.md` | Reviewing a pull request's blast radius |
+| `.agents/skills/gitnexus-cli/SKILL.md` | Indexing, reanalyzing, status |
+| `.agents/skills/gitnexus-guide/SKILL.md` | Tool and graph-schema reference |
 
 Do not load all GitNexus skills at session start.
