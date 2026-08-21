@@ -27,7 +27,24 @@ import CustomTouchableOpacity from 'components/button/CustomTouchableOpacity'
 
 Use the alias instead of a deep relative import. Verify the path exists before using it — `@/components/...` is not a valid alias in this project.
 
-Navigation lives in `src/routers/`, not `src/navigation/`. Zustand stores live in `src/zustands/`.
+Two places where the alias and the directory differ, so read carefully: navigation lives in `src/routers/` (no `src/navigation/` exists), and Zustand stores live in `src/zustand/` while the import alias is `zustands`.
+
+## Layout
+
+| Path | Holds |
+|---|---|
+| `src/components/` | reusable UI, grouped by kind (`button/`, `modals/`, `common/`, `dropdown/`, ...) |
+| `src/screens/`, `src/modules/` | features and screens |
+| `src/services/` | every API call |
+| `src/redux/` | global state only |
+| `src/zustand/` | UI-only state |
+| `src/hooks/`, `src/utils/`, `src/models/`, `src/viewmodels/` | shared logic and types |
+| `src/routers/` | navigation and the `Screens` enum |
+| `src/config/`, `src/constants/`, `src/styles/` | config, theme, constants |
+| `src/lang/` | generated i18n — never edited by hand |
+| `src/tracking/`, `src/appsflyer/`, `src/moengage/` | analytics and integrations |
+
+File convention inside a feature: `screens/livescore/match-item/index.tsx` alongside `MatchItem.tsx`.
 
 ## Immutability
 

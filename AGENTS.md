@@ -25,6 +25,7 @@ Android `minSdk` 24 / `target` 35, iOS deployment target 15.1. Hermes on. New Ar
 - Bug fixes should be minimal; avoid unrelated refactors.
 - Bottom-anchored UI must preserve the bottom safe-area inset, especially Android 3-button navigation.
 - Verify import paths before using them; do not invent paths.
+- The `app-android-lite` branch diverges deliberately. Never apply an Android-Lite optimization — removing background images, altering safe-area top padding, changing WebView layout coordinates — to iOS unless the user asks. Split the logic or wrap it in `Platform.OS` / `Platform.select`.
 
 For implementation details, read `.ai/rules/code-style.md` only when relevant.
 

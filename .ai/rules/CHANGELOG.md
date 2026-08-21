@@ -16,7 +16,7 @@ This file is installed into every project, so it must stay portable: name files 
 | Notifee | `@react-native-firebase/messaging` + MoEngage + AppsFlyer |
 | New Architecture unknown | Android `newArchEnabled=false`, iOS pods `RCT_NEW_ARCH_ENABLED=1` — mixed |
 | `@/components/...` alias | aliases are bare: `components/...`, `services/...` |
-| `src/navigation/` | `src/routers/`; Zustand in `src/zustands/` |
+| `src/navigation/` | `src/routers/`; Zustand dir is `src/zustand/` while its alias is `zustands` |
 | min versions unrecorded | Android `minSdk` 24 / target 35, iOS 15.1 |
 
 `build-release.md` now carries the real flavors (`dev`/`staging`/`beta`/`prod`), iOS schemes (`uniscore`, `uniscoreDev`, `uniscoreStag`, `uniscoreBeta`, `LiveScoreWidgetExtension`), env files, yarn scripts, and the ten fastlane lanes.

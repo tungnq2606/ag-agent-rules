@@ -1,4 +1,4 @@
-# Zustand stores — `src/zustands/**`
+# Zustand stores — `src/zustand/**`
 
 Zustand holds UI-only, ephemeral state. Anything app-wide belongs in Redux; anything from the server belongs in React Query.
 

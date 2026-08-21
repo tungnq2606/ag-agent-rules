@@ -59,6 +59,14 @@ Compiling is the minimum bar.
 
 Report which platform you built and which you did not.
 
+## Release builds
+
+| Target | Script |
+|---|---|
+| Android APK | `yarn build:dev:apk`, `build:stag:apk`, `build:beta:apk`, `build:prod:apk` |
+| iOS release | `yarn build:ios-dev-release`, `build:ios-stag-release`, `build:ios-beta-release`, `build:ios-prod-release` |
+| JS bundle only | `yarn b:ios`, `yarn b:and` |
+
 ## Release — fastlane
 
 Lanes in `fastlane/Fastfile`: `dev`, `staging`, `beta`, `beta_aab`, `upload_to_open_testing_play_store`, `ipa`, `testflight`, `testflight_stag`, `testflight_alpha`, `testflight_prod`.
