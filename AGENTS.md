@@ -44,27 +44,26 @@ Do not eagerly load all memory, rules, or skills.
 
 ## Working Principle
 
-Use the smallest effective amount of context, exploration, tools, MCP calls, skills, agents, and verification needed for the task.
+Use the smallest effective amount of exploration, tools, MCP calls, and agents needed for the task. Skills and verification named in Task Routing are the minimum standard, not overhead to minimize — do not skip them to save tokens.
 
 Start narrow. Reuse information already established in the current session. Do not perform broad repository scans or repeated tool calls without a concrete reason.
 
 ## Task Routing
 
-### Small / Local Work
+Classify the task into one of the five groups below. Read and follow the referenced skills — they are mandatory when their condition matches, not optional reading.
 
-For copy, styling, spacing, local constants, obvious one-line guards, isolated low-risk bugs, and other changes with a clear local blast radius:
+### By Scope
+
+**Small / Local** — copy, styling, spacing, local constants, obvious one-line guards, isolated low-risk bugs:
 
 - inspect only the relevant code;
 - implement directly;
-- do not create a formal plan;
-- do not require an approval round-trip;
-- verify proportionally using `.ai/rules/verification.md`.
+- no formal plan, no approval round-trip;
+- verify proportionally (see `.ai/rules/verification.md`).
 
 If the scope grows materially, reclassify before continuing.
 
-### Medium Work
-
-For multiple related files, a shared hook/service, contained state changes, or non-trivial behavior within one feature:
+**Medium** — multiple related files, a shared hook/service, contained state changes, non-trivial behavior within one feature:
 
 - inspect the relevant code and callers;
 - use a short implementation outline when useful;
@@ -73,11 +72,9 @@ For multiple related files, a shared hook/service, contained state changes, or n
 
 A persistent plan is optional unless the work becomes Large / Risky.
 
-### Large / Risky Work
+**Large / Risky** — architecture or data-flow changes, cross-module behavior, shared contracts, global state/navigation changes, refactors, migrations, dependency changes, unclear blast radius, significant regression risk, or work likely to span multiple sessions:
 
-For architecture or data-flow changes, cross-module behavior, shared contracts, global state/navigation changes, refactors, migrations, dependency changes, unclear blast radius, significant regression risk, or work likely to span multiple sessions:
-
-1. MUST use `.agents/skills/plan-work/SKILL.md`.
+1. MUST read and follow `.agents/skills/plan-work/SKILL.md`.
 2. If module boundaries, interfaces, seams, adapters, or responsibility placement are involved, MUST consult `.agents/skills/codebase-design/SKILL.md`.
 3. If shared/public symbols or downstream effects are unclear, read `.ai/rules/gitnexus.md` and perform the appropriate impact analysis.
 4. Persist the plan under `.ai/plans/active/`.
@@ -87,93 +84,67 @@ For architecture or data-flow changes, cross-module behavior, shared contracts, 
 
 Never skip the approval gate merely to save tokens.
 
-### Difficult Bugs
+### Debugging
 
-Start with targeted inspection.
+**Difficult bugs** — start with targeted inspection. If the cause remains unclear, the issue is intermittent, several plausible hypotheses exist, or instrumentation/reproduction is needed: read and follow `.agents/skills/diagnosing-bugs/SKILL.md`. Do not invoke the full diagnostic workflow for an obvious local bug.
 
-If the cause remains unclear, the issue is intermittent, several plausible hypotheses exist, or instrumentation/reproduction is needed, use `.agents/skills/diagnosing-bugs/SKILL.md`.
+**Crash / Sentry / ANR** — a reported crash, an ANR, or a Sentry issue: read and follow `.agents/skills/triage-crash/SKILL.md`.
 
-Do not invoke the full diagnostic workflow for an obvious local bug.
+**Security-sensitive** — read `.ai/rules/security.md` before changing authentication, session or token handling, storage of user data, deep-link or push-payload handling, WebView configuration, network security configuration, payment flows, or native permissions. A CRITICAL finding stops implementation and goes to the user.
 
-### Crash / Sentry Issue
+### React Native
 
-For a reported crash, an ANR, or a Sentry issue, use `.agents/skills/triage-crash/SKILL.md`.
+These skills are mandatory when the condition matches. Read the specific one, not all of them.
 
-### Security-Sensitive Change
-
-Read `.ai/rules/security.md` before changing authentication, session or token handling, storage of user data, deep-link or push-payload handling, WebView configuration, network security configuration, payment flows, or native permissions.
-
-A CRITICAL finding stops implementation and goes to the user.
-
-### React Native Implementation
-
-For non-trivial React Native-specific UI, rendering, lists, animations, or navigation behavior, consult `.agents/skills/react-native-project-rules/SKILL.md`.
-
-For notifications, persisted storage, deep links, or platform-behavior differences, read `.ai/rules/native-platform.md`.
-
-Project rules in this repository override generic skill recommendations when they conflict.
-
-### Animations, Gestures, Scroll-Driven Effects
-
-For Reanimated worklets, shared values, gesture-driven interaction, layout animation, or scroll-driven effects, use `.agents/skills/react-native-reanimated/SKILL.md`.
+| Condition | Skill to read |
+|-----------|---------------|
+| Non-trivial UI, rendering, lists, navigation | `.agents/skills/react-native-project-rules/SKILL.md` |
+| Reanimated worklets, shared values, gestures, scroll-driven effects | `.agents/skills/react-native-reanimated/SKILL.md` |
+| FPS/jank, re-renders, memory leaks, startup/TTI, bundle size, profiling | `.agents/skills/react-native-best-practices/SKILL.md` |
+| Notifications, persisted storage, deep links, platform differences | `.ai/rules/native-platform.md` |
 
 Reanimated 3.17 is already a dependency. Keep animation on the UI thread; a value driven from React state is a dropped frame.
 
-### React Native Performance
-
-For FPS/jank, excessive re-renders, memory leaks, startup/TTI, bundle size, Hermes/JS-thread issues, or native performance profiling, use `.agents/skills/react-native-best-practices/SKILL.md`.
-
 Do not apply performance optimizations without evidence or a concrete performance goal.
 
-### TDD
+Project rules in this repository override generic skill recommendations when they conflict.
 
-Use `.agents/skills/tdd/SKILL.md` only when the user requests test-first/TDD, or an approved plan explicitly identifies a valuable regression-test seam.
+### Completion (mandatory for every non-trivial change)
 
-Do not force TDD for trivial changes.
+These are not optional — every non-trivial code change triggers all three steps below, in order.
 
-### Code Review
+**Step 1: Review the diff** — read and follow `.agents/skills/code-review/SKILL.md`. Address CRITICAL and HIGH findings before reporting the work complete. Report MEDIUM and LOW findings without acting on them unless the user asks.
 
-After writing or modifying code beyond a trivial edit, review the diff using `.agents/skills/code-review/SKILL.md`.
+**Step 2: Verify** — `.ai/rules/verification.md` decides which check the change warrants. Run the check and read the output. Do not claim "done" or "passes" without evidence from this step. See `.agents/skills/verification-before-completion/SKILL.md`.
 
-Address CRITICAL and HIGH findings before reporting the work complete. Report MEDIUM and LOW findings without acting on them unless the user asks.
+**Step 3: Completion checklist** — before saying done, fixed, or passing, confirm:
 
-### Claiming Work Complete
+- Diff reviewed against Always-On Invariants above
+- No `any` without recorded user approval
+- No new dependency without recorded user approval
+- Import paths verified (not invented); aliases are bare, no `@/`
+- `CustomTouchableOpacity` has `nameEvent` (if pressable added/changed)
+- Bottom safe area preserved (if bottom-anchored UI touched)
+- `src/lang/` not edited directly
+- Existing shared component used when one exists (`AppList`, `AppModalV2`, `BottomSheetModal`, `GradientView`, etc.)
+- Verification proportional to change was run, not assumed
 
-Before reporting done, fixed, or passing — and before committing — use `.agents/skills/verification-before-completion/SKILL.md`.
+Do not skip any step. Do not report completion before running step 2.
 
-`.ai/rules/verification.md` decides which check the change warrants. That skill forbids claiming its result without having run it.
+**Commit and PR** — when the user asks to commit or raise a PR, read and follow `.agents/skills/ship-change/SKILL.md`. Do not commit or push work the user has not asked to be committed.
 
-### Commit and Pull Request
+### On Request
 
-When the user asks for a commit or a pull request, use `.agents/skills/ship-change/SKILL.md`.
+These skills activate only when the user explicitly asks, or when another routing condition sends you here.
 
-Do not commit or push work the user has not asked to be committed.
+| Trigger | Skill |
+|---------|-------|
+| User requests test-first/TDD | `.agents/skills/tdd/SKILL.md` |
+| User explicitly requests documentation | `.agents/skills/document-feature/SKILL.md` + `.ai/rules/documentation.md` |
+| Unfinished work moves to another session or agent | `.agents/skills/handoff/SKILL.md` |
+| Changing this instruction system itself | `.agents/skills/writing-for-agents/SKILL.md` |
 
-### Handoff
-
-When unfinished work moves to another session or another agent, or when the current session has grown too large, MUST use `.agents/skills/handoff/SKILL.md`.
-
-The shared handoff lives at `.ai/memory/HANDOFF.md`.
-
-### Agent-System Maintenance
-
-When substantially changing `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, memory protocols, or skills, use `.agents/skills/writing-for-agents/SKILL.md`.
-
-### Documentation — Explicit Request Only
-
-NEVER create or update documentation automatically after development, refactoring, bug fixing, verification, or plan completion.
-
-Only when the user explicitly requests documentation:
-
-1. Read `.ai/rules/documentation.md`.
-2. Use `.agents/skills/document-feature/SKILL.md`.
-3. Inspect and follow the existing Docusaurus structure and conventions.
-4. Document the final implementation, not merely the original plan.
-
-Documentation changes require explicit user intent.
-An approved plan does NOT count as an explicit documentation request.
-
-Documentation may appear in a plan as an optional follow-up, but it MUST NOT be executed unless the user explicitly requests documentation.
+Documentation: NEVER create or update documentation automatically after development, refactoring, bug fixing, verification, or plan completion. An approved plan does NOT count as an explicit documentation request.
 
 ## Rules On Demand
 

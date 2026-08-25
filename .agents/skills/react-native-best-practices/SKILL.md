@@ -12,6 +12,20 @@ metadata:
 
 Performance optimization guide for React Native applications, covering JavaScript/React, Native (iOS/Android), and bundling optimizations. Based on Callstack's "Ultimate Guide to React Native Optimization".
 
+## Project-Specific Context
+
+This is a **bare React Native 0.77** project — not Expo. Apply references accordingly:
+
+| Reference mentions | This project uses | Notes |
+|-------------------|-------------------|-------|
+| Jotai | **Zustand** (`src/zustand/`) | Disregard Jotai patterns; use Zustand for UI-only state |
+| React Compiler | **Not installed** | Skip automatic memoization references; use manual `useMemo`/`useCallback` when justified |
+| Expo SDK 52 / tree shaking | **Not applicable** | Bundle analysis still applies, but Expo-specific tree shaking does not |
+| FlashList | **AppList** | Project has its own list abstraction; prefer it over introducing FlashList |
+| `className` / NativeWind | **StyleSheet.create** | All styling uses StyleSheet; no utility CSS |
+| expo-image | **react-native-fast-image** | Already a dependency for image caching |
+
+
 ## Skill Format
 
 Each reference file follows a hybrid format for fast lookup and deep understanding:

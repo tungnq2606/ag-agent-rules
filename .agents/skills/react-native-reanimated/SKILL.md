@@ -7,116 +7,105 @@ description: >-
   animations", "shared element transitions", or "60fps React Native
   animations". Covers worklets, shared values, layout animations, gestures,
   and scroll-driven animations.
-license: Apache-2.0
-compatibility: "React Native / Expo. iOS + Android."
-metadata:
-  author: terminal-skills
-  version: "1.0.0"
-  category: development
-  tags: ["react-native", "animation", "reanimated", "gestures", "ui"]
 ---
 
 # React Native Reanimated
 
-## Overview
+Reanimated 3.17 is already installed in this project. Do not add it again or change the babel config.
 
-Reanimated runs animations on the native UI thread — no JS bridge bottleneck, no dropped frames. Animations stay at 60fps even when your JavaScript thread is busy. It uses "worklets" — small JavaScript functions that execute on the UI thread via JSI. The standard for production-quality animations in React Native: gesture-driven interactions, layout transitions, scroll-based effects, and shared element transitions.
+This is a **bare React Native 0.77** project — not Expo. Do not use Expo APIs, `className` props, or NativeWind. Use `StyleSheet.create` for all styles.
 
 ## When to Use
 
-- Any animation in React Native beyond simple opacity/transform
+- Any animation beyond simple opacity/transform
 - Gesture-driven interactions (swipe to delete, drag to reorder, pinch to zoom)
 - Scroll-driven animations (parallax headers, sticky elements)
 - Layout animations (items entering/leaving lists)
-- Shared element transitions between screens
 
-## Instructions
-
-### Setup
-
-```bash
-npx expo install react-native-reanimated react-native-gesture-handler
-```
-
-```javascript
-// babel.config.js — Add the Reanimated plugin (MUST be last)
-module.exports = function (api) {
-  api.cache(true);
-  return {
-    presets: ["babel-preset-expo"],
-    plugins: ["react-native-reanimated/plugin"],  // Must be last!
-  };
-};
-```
+## Core Patterns
 
 ### Shared Values and Animated Styles
 
 ```tsx
-// components/FadeIn.tsx — Basic animation with shared values
+import React, { useEffect } from 'react'
+import { StyleSheet, ViewProps } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withSpring,
-} from "react-native-reanimated";
-import { useEffect } from "react";
+} from 'react-native-reanimated'
 
-export function FadeInCard({ children }) {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
+interface FadeInCardProps extends ViewProps {
+  children: React.ReactNode
+}
+
+const FadeInCard = ({ children, style, ...rest }: FadeInCardProps) => {
+  const opacity = useSharedValue(0)
+  const translateY = useSharedValue(20)
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 600 });
-    translateY.value = withSpring(0, { damping: 15 });
-  }, []);
+    opacity.value = withTiming(1, { duration: 600 })
+    translateY.value = withSpring(0, { damping: 15 })
+  }, [])
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [{ translateY: translateY.value }],
-  }));
+  }))
 
   return (
-    <Animated.View style={animatedStyle} className="bg-white rounded-xl p-4 shadow-lg">
+    <Animated.View style={[styles.card, animatedStyle, style]} {...rest}>
       {children}
     </Animated.View>
-  );
+  )
 }
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 12,
+    padding: 16,
+  },
+})
 ```
 
 ### Gesture Animations
 
 ```tsx
-// components/SwipeToDelete.tsx — Swipe gesture with animation
+import React from 'react'
+import { StyleSheet } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   runOnJS,
-} from "react-native-reanimated";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+} from 'react-native-reanimated'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 
-export function SwipeToDelete({ onDelete, children }) {
-  const translateX = useSharedValue(0);
+interface SwipeToDeleteProps {
+  onDelete: () => void
+  children: React.ReactNode
+}
+
+const SwipeToDelete = ({ onDelete, children }: SwipeToDeleteProps) => {
+  const translateX = useSharedValue(0)
 
   const pan = Gesture.Pan()
     .onUpdate((event) => {
-      // Only allow left swipe
-      translateX.value = Math.min(0, event.translationX);
+      translateX.value = Math.min(0, event.translationX)
     })
     .onEnd((event) => {
       if (event.translationX < -150) {
-        // Swipe far enough — delete
-        translateX.value = withSpring(-400);
-        runOnJS(onDelete)();
+        translateX.value = withSpring(-400)
+        runOnJS(onDelete)()
       } else {
-        // Snap back
-        translateX.value = withSpring(0);
+        translateX.value = withSpring(0)
       }
-    });
+    })
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
-  }));
+  }))
 
   return (
     <GestureDetector gesture={pan}>
@@ -124,57 +113,30 @@ export function SwipeToDelete({ onDelete, children }) {
         {children}
       </Animated.View>
     </GestureDetector>
-  );
-}
-```
-
-### Layout Animations
-
-```tsx
-// components/AnimatedList.tsx — Items animate in/out automatically
-import Animated, { FadeInDown, FadeOutLeft, LinearTransition } from "react-native-reanimated";
-
-export function AnimatedList({ items, onRemove }) {
-  return (
-    <Animated.FlatList
-      data={items}
-      itemLayoutAnimation={LinearTransition}
-      renderItem={({ item, index }) => (
-        <Animated.View
-          entering={FadeInDown.delay(index * 100).springify()}
-          exiting={FadeOutLeft.duration(300)}
-          className="bg-white p-4 mx-4 my-1 rounded-lg"
-        >
-          <Text>{item.title}</Text>
-          <Pressable onPress={() => onRemove(item.id)}>
-            <Text className="text-red-500">Remove</Text>
-          </Pressable>
-        </Animated.View>
-      )}
-    />
-  );
+  )
 }
 ```
 
 ### Scroll-Driven Animations
 
 ```tsx
-// components/ParallaxHeader.tsx — Parallax effect on scroll
+import React from 'react'
+import { StyleSheet, Text } from 'react-native'
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
   useAnimatedStyle,
   interpolate,
-} from "react-native-reanimated";
+} from 'react-native-reanimated'
 
-export function ParallaxHeader() {
-  const scrollY = useSharedValue(0);
+const ParallaxHeader = () => {
+  const scrollY = useSharedValue(0)
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
+      scrollY.value = event.contentOffset.y
     },
-  });
+  })
 
   const headerStyle = useAnimatedStyle(() => ({
     height: interpolate(scrollY.value, [-100, 0, 200], [400, 300, 100]),
@@ -182,44 +144,91 @@ export function ParallaxHeader() {
     transform: [
       { translateY: interpolate(scrollY.value, [0, 200], [0, -50]) },
     ],
-  }));
+  }))
 
   return (
     <>
-      <Animated.View style={headerStyle} className="bg-blue-600">
-        <Text className="text-white text-3xl font-bold">My App</Text>
+      <Animated.View style={[styles.header, headerStyle]}>
+        <Text style={styles.headerText}>Header</Text>
       </Animated.View>
-      <Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+      >
         {/* Content */}
       </Animated.ScrollView>
     </>
-  );
+  )
 }
+
+const styles = StyleSheet.create({
+  header: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+})
 ```
 
-## Examples
+### Layout Animations
 
-### Example 1: Build a card swipe interface
+```tsx
+import React from 'react'
+import { StyleSheet, Text } from 'react-native'
+import Animated, {
+  FadeInDown,
+  FadeOutLeft,
+  LinearTransition,
+} from 'react-native-reanimated'
+import CustomTouchableOpacity from 'components/button/CustomTouchableOpacity'
 
-**User prompt:** "Build a Tinder-style card swipe interface with smooth animations."
+interface AnimatedItemProps {
+  item: { id: string; title: string }
+  index: number
+  onRemove: (id: string) => void
+}
 
-The agent will create a card stack with pan gestures, rotation based on swipe direction, spring animations for snap-back, and layout transitions for card removal.
+const AnimatedItem = ({ item, index, onRemove }: AnimatedItemProps) => (
+  <Animated.View
+    entering={FadeInDown.delay(index * 100).springify()}
+    exiting={FadeOutLeft.duration(300)}
+    style={styles.item}
+  >
+    <Text>{item.title}</Text>
+    <CustomTouchableOpacity
+      nameEvent="remove_item"
+      onPress={() => onRemove(item.id)}
+    >
+      <Text style={styles.removeText}>Remove</Text>
+    </CustomTouchableOpacity>
+  </Animated.View>
+)
 
-### Example 2: Animated bottom sheet
+const styles = StyleSheet.create({
+  item: {
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  removeText: {
+    color: 'red',
+  },
+})
+```
 
-**User prompt:** "Create a bottom sheet that can be dragged up and snaps to positions."
+## Rules
 
-The agent will use pan gestures with snap points, shared values for height, and spring animations for smooth snapping.
+- **Animate only GPU properties**: `transform` and `opacity`. Animating `width`, `height`, `margin`, or `borderRadius` drops frames.
+- **Shared values, not React state**: `useSharedValue` runs on the UI thread. A value driven from `useState` crosses the bridge every frame.
+- **`useDerivedValue`** for computed animated values — never compute inside `useAnimatedStyle`.
+- **`runOnJS`** to bridge back to JS — worklets cannot access React state, closures, or JS objects directly.
+- **`scrollEventThrottle={16}`** on scroll views driving animations — 60fps events.
+- **Babel plugin is already configured** — `react-native-reanimated/plugin` is last in `babel.config.js`. Do not move it.
+- **No JS objects in worklets** — only shared values and primitives.
+- **Use `GestureDetector`** from `react-native-gesture-handler` for animated press/pan/pinch states — not `TouchableOpacity.onPressIn`.
+- **`StyleSheet.create`** for all styles — no inline objects, no `className`.
 
-## Guidelines
-
-- **Shared values for animation state** — `useSharedValue` runs on UI thread
-- **`useAnimatedStyle` for dynamic styles** — recalculated on UI thread
-- **`withSpring` for natural motion** — `withTiming` for precise duration
-- **`runOnJS` to call JS from worklets** — bridge back to JS thread when needed
-- **Gesture Handler integration** — `Gesture.Pan()`, `Gesture.Pinch()`, etc.
-- **Layout animations are declarative** — `entering`, `exiting` props on Animated components
-- **`interpolate` for value mapping** — map scroll position to opacity, scale, etc.
-- **Babel plugin must be last** — `react-native-reanimated/plugin` at end of plugins array
-- **Don't access JS objects in worklets** — only shared values and primitives
-- **`scrollEventThrottle={16}`** — 60fps scroll events for smooth animations
