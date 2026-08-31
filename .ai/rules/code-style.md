@@ -147,10 +147,13 @@ The app ships 30+ languages, so every string is a layout risk as well as a trans
 
 ## Comments
 
+- **Default is no comment.** A comment must earn its place; do not add one unless removing it would lose information a reader cannot get from the code or from project rules.
 - All comments in English. Never comment in Vietnamese or any other language.
 - Comment only what the code cannot express: the *why*, not the *what*. If a variable name or function name already explains the intent, a comment restating it is noise.
 - Do not add comments to obvious code — assignments, standard patterns, simple conditionals, imports.
+- Do not repeat what a project rule already covers. If `.ai/rules/code-style.md` explains why a pattern is used, the code does not need a comment restating the rule.
 - Keep comments short — one line when possible. A comment longer than the code it describes is a sign the code needs renaming, not annotating.
+- Do not generate JSDoc blocks for internal functions, hooks, or components unless they are exported as a public API for other modules. A well-named function with typed parameters is its own documentation.
 - Do not use decorative comment blocks, section banners, or ASCII dividers.
 - Remove stale comments when the code they describe changes.
 - `// TODO` is acceptable only with a concrete description of what remains; `// TODO: fix this` is not concrete.
