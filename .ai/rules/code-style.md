@@ -145,6 +145,16 @@ The app ships 30+ languages, so every string is a layout risk as well as a trans
 - Read colors from the theme so both dark and light stay legible; do not hardcode a hex that only works in one theme.
 - Allow text to scale with the OS font-size setting on screens carrying primary content.
 
+## Comments
+
+- All comments in English. Never comment in Vietnamese or any other language.
+- Comment only what the code cannot express: the *why*, not the *what*. If a variable name or function name already explains the intent, a comment restating it is noise.
+- Do not add comments to obvious code — assignments, standard patterns, simple conditionals, imports.
+- Keep comments short — one line when possible. A comment longer than the code it describes is a sign the code needs renaming, not annotating.
+- Do not use decorative comment blocks, section banners, or ASCII dividers.
+- Remove stale comments when the code they describe changes.
+- `// TODO` is acceptable only with a concrete description of what remains; `// TODO: fix this` is not concrete.
+
 ## Hygiene
 
 - Do not swallow errors.
