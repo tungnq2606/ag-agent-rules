@@ -64,7 +64,7 @@ Symlink trỏ vào đường dẫn clone. Di chuyển clone thì chạy lại sc
 cd /path/to/your-project
 bash ~/dev/ag-agent-rules/setup.sh
 
-# ghi đè file đã tồn tại (bản cũ giữ thành *.bak)
+# ghi đè file đã tồn tại (không backup — commit target repo trước khi chạy)
 FORCE=1 bash ~/dev/ag-agent-rules/setup.sh
 ```
 
@@ -78,6 +78,10 @@ Script không ghi đè file có sẵn nếu không có `FORCE=1`. Sau khi chạy
 | [.ai/rules/build-release.md](.ai/rules/build-release.md) | Environment, scheme iOS, gradle task Android |
 
 Để `.ai/memory/*` rỗng cho tới khi có session tạo ra state thật. Memory rỗng là đúng; memory bịa là sai.
+
+Script cài `SessionStart` hook ở `.agents/hooks/rule-compliance.sh` và nối vào `.claude/settings.json`. Mỗi session hook đẩy nghĩa vụ đọc rule vào context, và báo động khi `AGENTS.md` mất section `Rule Compliance` — dấu hiệu file bị managed block của tool khác ghi đè. Hook mới có hiệu lực sau khi mở `/hooks` một lần hoặc khởi động lại session.
+
+`.ai/memory/*` không bị `FORCE=1` ghi đè: memory là state của project, không phải output của installer.
 
 ## Skill
 
