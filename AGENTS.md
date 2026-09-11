@@ -4,6 +4,18 @@ This is the canonical instruction file for all coding agents in this repository.
 
 Agent-specific files such as `CLAUDE.md` and `GEMINI.md` are adapters only. Keep shared project rules here or in the referenced on-demand files; do not duplicate them across adapters.
 
+## Rule Compliance
+
+This file is a contract. It binds every session from the first tool call to the last.
+
+Before the first tool call: read this file end to end, then run the Session Start reads below.
+
+Before the first production-code edit: name the Task Routing group the task falls into, and read every rule and skill that group's matching conditions name. A named skill is read in the current session at its `.agents/skills/` path — recalling it from an earlier session does not count as reading it.
+
+Routing holds for the whole session. Turn 40 is bound by the same group, the same approval gate, and the same Completion steps as turn 1. Re-classify when the scope changes; a new turn on the same task does not reset the obligation.
+
+Compliance is checkable: name the files read. Token budget, session length, and "the change looks correct" are not exemptions. When a step named here was skipped, say so in the report instead of reporting the work complete.
+
 ## Project
 
 Uniscore is a React Native sports app for live scores and match details across 11+ sports, 30+ languages, dark/light themes, and dev/staging/beta/production environments.

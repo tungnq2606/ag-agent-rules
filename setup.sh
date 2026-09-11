@@ -4,7 +4,7 @@
 #
 # Usage:
 #   bash /path/to/ag-agent-rules/setup.sh [target-repo]   # default: current directory
-#   FORCE=1 bash setup.sh [target-repo]                   # overwrite existing files (.bak kept)
+#   FORCE=1 bash setup.sh [target-repo]                   # overwrite existing files (no backup)
 #
 # Installs:
 #   AGENTS.md            canonical instructions (Codex and Antigravity read this natively)
@@ -16,6 +16,7 @@
 #   .ai/memory/          session memory skeleton
 #   .ai/plans/           persisted plans
 #   .claude/skills/      Claude native skill discovery (pointers to .agents/skills/)
+#   .agents/hooks/       SessionStart hook putting AGENTS.md Rule Compliance in force
 
 set -euo pipefail
 
@@ -47,19 +48,25 @@ copy_file() {
     warn "exists, kept: $rel"
     return
   fi
-  [ -f "$dst" ] && cp "$dst" "$dst.bak" && warn "backed up: $rel.bak"
   cp "$src" "$dst"
   ok "$rel"
 }
 
+# Second argument "keep" pins a tree to fill-only: existing files survive even
+# under FORCE. Session memory belongs to the project, not to this installer —
+# overwriting it with the empty skeleton destroys the live handoff.
 copy_tree() {
-  local rel="$1" src="$SOURCE_DIR/$1" dst="$TARGET_DIR/$1"
+  local rel="$1" mode="${2:-}" src="$SOURCE_DIR/$1" dst="$TARGET_DIR/$1"
   [ -d "$src" ] || { warn "missing in source, skipped: $rel"; return; }
   mkdir -p "$dst"
   local flags=(-a --exclude='.DS_Store')
-  [ "$FORCE" = "1" ] || flags+=(--ignore-existing)
+  if [ "$mode" = "keep" ] || [ "$FORCE" != "1" ]; then
+    flags+=(--ignore-existing)
+  fi
   rsync "${flags[@]}" "$src/" "$dst/"
-  ok "$rel ($(find "$dst" -type f ! -name '.DS_Store' | wc -l | tr -d ' ') files)"
+  local note=""
+  [ "$mode" = "keep" ] && [ "$FORCE" = "1" ] && note=", existing kept"
+  ok "$rel ($(find "$dst" -type f ! -name '.DS_Store' | wc -l | tr -d ' ') files$note)"
 }
 
 # ------------------------------------------------------------------- 1. root
@@ -69,6 +76,15 @@ copy_file AGENTS.md
 copy_file CLAUDE.md
 copy_file GEMINI.md
 copy_file CONTEXT.md
+
+# Older versions of this script left <file>.bak beside the real file. A stale
+# AGENTS.md.bak in the root is a second instruction file an agent can read.
+stale_bak=$(find "$TARGET_DIR" -maxdepth 1 -name '*.bak' -type f | head -5)
+if [ -n "$stale_bak" ]; then
+  warn "backups from an older setup.sh, no longer written or ignored:"
+  printf '    %s\n' $stale_bak
+  warn "delete them: rm $TARGET_DIR/*.bak"
+fi
 echo
 
 # ------------------------------------------------------- 2. shared skills/rules
@@ -76,7 +92,7 @@ echo
 info "Shared skills, rules, memory"
 copy_tree .agents/skills
 copy_tree .ai/rules
-copy_tree .ai/memory
+copy_tree .ai/memory keep
 copy_tree .ai/plans
 mkdir -p "$TARGET_DIR/.ai/plans/active" "$TARGET_DIR/.ai/plans/completed"
 ok ".ai/plans/{active,completed}"
@@ -111,6 +127,62 @@ ok ".claude/skills/ ($linked symlink, $kept project-owned kept)"
 [ "$kept" -gt 0 ] && warn "A kept name shadows the shared skill. Rename one, or delete the project copy by hand."
 echo
 
+# ------------------------------------------- 3b. Rule Compliance session hook
+
+info "Rule Compliance session hook"
+
+HOOK_DIR="$TARGET_DIR/.agents/hooks"
+mkdir -p "$HOOK_DIR"
+cp "$SOURCE_DIR/scripts/rule-compliance-hook.sh" "$HOOK_DIR/rule-compliance.sh"
+chmod +x "$HOOK_DIR/rule-compliance.sh"
+ok ".agents/hooks/rule-compliance.sh"
+
+# A markdown rule binds only an agent that opens the file. The hook is what
+# makes it reach context every session, so wire it into Claude's settings too.
+if command -v python3 >/dev/null 2>&1; then
+  HOOK_MSG="$(python3 - "$TARGET_DIR/.claude/settings.json" <<'PY'
+import json, os, sys
+
+path = sys.argv[1]
+command = 'bash "$CLAUDE_PROJECT_DIR/.agents/hooks/rule-compliance.sh"'
+
+try:
+    with open(path, encoding="utf-8") as fh:
+        settings = json.load(fh)
+except FileNotFoundError:
+    settings = {}
+except (OSError, ValueError) as exc:
+    print("settings.json left alone (%s)" % exc)
+    raise SystemExit(0)
+
+if not isinstance(settings, dict):
+    print("settings.json is not an object, left alone")
+    raise SystemExit(0)
+
+hooks = settings.setdefault("hooks", {})
+entries = hooks.setdefault("SessionStart", [])
+
+for entry in entries:
+    for hook in (entry or {}).get("hooks", []):
+        if "rule-compliance" in str(hook.get("command", "")):
+            print("SessionStart hook already wired")
+            raise SystemExit(0)
+
+entries.append({"hooks": [{"type": "command", "command": command}]})
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "w", encoding="utf-8") as fh:
+    json.dump(settings, fh, indent=2, ensure_ascii=False)
+    fh.write("\n")
+print("SessionStart hook added to .claude/settings.json")
+PY
+)"
+  ok "$HOOK_MSG"
+else
+  warn "python3 not found — wire the SessionStart hook by hand, see the header of"
+  warn "  .agents/hooks/rule-compliance.sh"
+fi
+echo
+
 # -------------------------------------------------------------- 4. .gitignore
 
 info "Managed .gitignore block"
@@ -132,9 +204,6 @@ read -r -d '' BLOCK <<'IGNORE_BLOCK' || true
 # travel with the repo for Codex and Antigravity to read it.
 
 .DS_Store
-
-# setup.sh writes these when overwriting an existing file
-*.bak
 
 # per-machine agent state
 .claude/settings.local.json
@@ -192,7 +261,7 @@ fi
 # letting the user assume something got hidden.
 if [ -d "$TARGET_DIR/.git" ]; then
   already_tracked=$(cd "$TARGET_DIR" && git ls-files 2>/dev/null \
-    | grep -E 'service-account.*\.json$|\.bak$' | head -5 || true)
+    | grep -E 'service-account.*\.json$' | head -5 || true)
   if [ -n "$already_tracked" ]; then
     warn "already tracked, so the new rules do not hide them:"
     printf '    %s\n' $already_tracked
@@ -220,5 +289,6 @@ cat <<'NEXT'
   4. Edit .ai/rules/build-release.md — real environments, schemes, gradle tasks.
   5. Leave .ai/memory/* empty until a session actually produces durable state.
 
-Re-run with FORCE=1 to overwrite existing files (originals kept as *.bak).
+Re-run with FORCE=1 to overwrite existing files. It keeps no backup, so
+commit the target repo first.
 NEXT

@@ -6,6 +6,20 @@ Record a change here when it alters what an agent does. A wording tidy-up that l
 
 This file is installed into every project, so it must stay portable: name files that live outside the project layer in prose, never as a path. A path that does not resolve where this file lands is a dead pointer.
 
+## 2026-09-10 — v2.4
+
+**`AGENTS.md` §Rule Compliance.** Agents were treating the routing table as reference to consult rather than a contract, and skipping named skills mid-session. The new section sits ahead of §Project, at the top of the file where attention is highest, and states four obligations: read this file end to end before the first tool call, name the Task Routing group and read the rules and skills it names before the first production-code edit, keep that routing in force for the whole session rather than only the first turn, and name the files actually read so compliance is checkable. Token budget, session length, and "the change looks correct" are called out as non-exemptions because those were the observed rationalizations.
+
+It adds no eager loading. `Session Start` still owns what to read and stays progressive; §Rule Compliance owns only the obligation. Both adapters now say "read `AGENTS.md` end to end, §Rule Compliance included, before the first tool call" instead of "read `AGENTS.md`".
+
+**A `SessionStart` hook enforces it.** A markdown rule binds only an agent that opens the file, so `scripts/rule-compliance-hook.sh` now ships and `setup.sh` installs it at `<target>/.agents/hooks/rule-compliance.sh`, wiring it into `.claude/settings.json` under `hooks.SessionStart` (idempotent; skipped with a warning when python3 is absent). Every session gets the obligation in context whether or not the agent chose to read `AGENTS.md`. The hook also fails loudly in two states found in the wild: `AGENTS.md` missing, and `AGENTS.md` present but carrying no §Rule Compliance section — the signature of another tool's managed block having overwritten the file. A new hook reaches a running session only after `/hooks` is opened once or the session restarts.
+
+**`setup.sh` no longer overwrites `.ai/memory/`.** `copy_tree` takes a second argument `keep`, and `.ai/memory` uses it: existing memory files survive even under `FORCE=1`. They had been replaced with the empty skeleton, which destroys the live handoff — and with `*.bak` gone there is no copy to fall back on. Memory is project state, not installer output.
+
+**`setup.sh` no longer writes `*.bak`.** `copy_file` used to copy the existing file to `<file>.bak` before an overwrite, so every `FORCE=1` run left `AGENTS.md.bak`, `CLAUDE.md.bak`, `GEMINI.md.bak`, and `CONTEXT.md.bak` in the target root — a stale instruction file sitting beside the real one, ignored by the managed block so nothing ever cleaned it up. `copy_tree` never backed anything up anyway, so only root files got the treatment. Backups are gone; `FORCE=1` overwrites in place and git is the only recovery, which the closing message and the README now say. `*.bak` left the managed `.gitignore` block and the already-tracked warning, and the script warns once when it finds backups an older version left behind rather than deleting them itself.
+
+`FORCE=1` stays the gate. A target repo's `AGENTS.md` carries hand-written Project and Always-On Invariants sections, and `.ai/rules/verification.md` carries its real commands — overwriting those by default would wipe the customization with no backup to fall back on.
+
 ## 2026-08-21 — v2.3
 
 **Antigravity's read path confirmed**, and the adapter was in the wrong place. Antigravity reads workspace rules from `AGENTS.md` and `GEMINI.md` at the project root, and skills from `~/.gemini/config/skills/` (global) plus `.agents/skills/` (workspace).

@@ -4,7 +4,7 @@ The canonical repository instructions are in `AGENTS.md`.
 
 Before project work:
 
-1. Read `AGENTS.md`.
+1. Read `AGENTS.md` end to end, §Rule Compliance included, before the first tool call.
 2. Read `.ai/memory/COMPACT.md`.
 3. If COMPACT declares an active handoff, read `.ai/memory/HANDOFF.md`.
 4. Load deeper memory, rules, and skills only when `AGENTS.md` routes to them.
