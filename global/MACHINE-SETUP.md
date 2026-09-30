@@ -1,76 +1,45 @@
 # Machine Setup
 
-What a new machine needs beyond `scripts/bootstrap-machine.sh`. The script handles agent-level rules and cross-project skill symlinks; everything below is manual because it holds machine-local paths, credentials, or personal preference.
-
-## Order
+## One run
 
 ```bash
 git clone git@github.com:tungnq2606/ag-agent-rules.git ~/dev/ag-agent-rules
 cd ~/dev/ag-agent-rules
 
 DRY_RUN=1 bash scripts/bootstrap-machine.sh   # look first
-bash scripts/bootstrap-machine.sh             # machine layer
+bash scripts/bootstrap-machine.sh             # rules, skills, settings, MCP
 
 bash setup.sh /path/to/project                # project layer, per repo
 ```
 
-Symlinks point at the clone path. Move the clone, re-run the bootstrap.
+That installs `~/.claude/rules/ecc/`, symlinks every skill this repo carries into `~/.claude/skills` (and `~/.gemini/config/skills` when Antigravity is present), merges the portable keys into `~/.claude/settings.json`, and registers the MCP servers. Run `--help`-style detail from the script header; it is the source of truth for what lands where.
 
-## 1. Claude Code settings
+Symlinks point at the clone path. Move the clone, re-run the script.
 
-`~/.claude/settings.json`. Current shape:
+A real directory already sitting at a skill's name is kept, not replaced. `FORCE=1` moves it to `~/.claude/backups/` and links the repo copy instead — that is how a machine holding hand-installed copies converts to symlinks.
 
-```json
-{
-  "model": "opus[1m]",
-  "effortLevel": "xhigh",
-  "permissions": {
-    "allow": ["..."],
-    "deny": [
-      "Bash(rm -rf *)",
-      "Bash(git push --force *)",
-      "Bash(git reset --hard *)",
-      "Edit(.git/**)",
-      "Edit(.claude/**)"
-    ],
-    "additionalDirectories": ["..."]
-  },
-  "hooks": { "PreToolUse": [], "PostToolUse": [] },
-  "enabledPlugins": {},
-  "extraKnownMarketplaces": {}
-}
+## What the script deliberately leaves alone
+
+**Hooks and the status line.** GitNexus, the caveman CLI, and the Antigravity auto-approval extension each write their own hook entries, pointing at paths that exist only after that tool is installed. Copying those paths from another machine produces hooks that fail silently. Install the tools instead:
+
+```bash
+npm i -g @caveman-ai/cli       # statusLine + 8 hook entries + its MCP server
+npx gitnexus@latest analyze    # 2 hook entries, and the per-repo index
 ```
 
-Keep the `deny` list — it is the cheapest guard against an irreversible command, and it costs nothing when nothing goes wrong.
+Antigravity's extension hook path lives in the IDE's `globalStorage`. Re-derive it on the machine.
 
-The `allow` list accumulates project-specific absolute paths. Do not copy it verbatim to a new machine; let it rebuild, or run `/fewer-permission-prompts` in the project.
+**`permissions.allow` and `additionalDirectories`.** Both accumulate absolute project paths. Let them rebuild, or run `/fewer-permission-prompts` inside a project.
 
-## 2. Hooks
+**Connector MCP auth.** Figma, Atlassian, Claude Docs, Linear, Notion, Slack authenticate interactively per machine. Sign in with `/mcp`.
 
-| Hook | Command | Purpose |
-|---|---|---|
-| PreToolUse `Grep\|Glob\|Bash` | `~/.claude/hooks/gitnexus/gitnexus-hook.cjs` | Enrich searches with graph context |
-| PostToolUse `Bash` | same | Keep the graph current |
-| PreToolUse `*` | Antigravity `claude-auto-yes` extension | IDE auto-approval |
+## Plugins
 
-The GitNexus hook script is not in this repo — it ships with GitNexus. Install GitNexus first, then point the hook at it.
+The script writes the four marketplaces and seven plugins into `settings.json`; Claude Code installs them on the next start.
 
-The Antigravity auto-yes hook path lives inside the IDE's extension storage and will differ on a new machine. Re-derive it rather than copying the path.
+`AGENTS.md` §External Skills decides precedence where a plugin skill overlaps one of this repository's. Most of the overlap is `superpowers` and `engineering`.
 
-## 3. Plugins
-
-Marketplaces: `claude-plugins-official`, `knowledge-work-plugins` (anthropics), `last30days-skill` (mvanhorn), `caveman` (JuliusBrussee).
-
-Enabled: `code-review`, `playground`, `superpowers`, `last30days`, `engineering`, `caveman`, `figma`.
-
-### Plugin skills that conflict with this repository
-
-`AGENTS.md` has an **External Skills** section listing which plugin skills are adopted and which are retired. Read it before installing plugins on a new machine — most of the overlap is with `superpowers` and `engineering`.
-
-The `superpowers` plugin also installs a **SessionStart hook** that instructs the agent to invoke its own skills before responding. That competes with this repository's Task Routing. Two ways to live with it:
-
-- Keep the plugin and rely on `AGENTS.md` §External Skills to settle precedence. Its `using-git-worktrees` and `dispatching-parallel-agents` stay available. The hook still fires, so expect occasional wrong-skill starts.
-- Disable it, and lose nothing this repository needs — the one skill worth keeping is already vendored at `.agents/skills/verification-before-completion/`:
+`superpowers` also installs a **SessionStart hook** that tells the agent to invoke its own skills before responding, which competes with this repository's Task Routing. Either keep it and rely on §External Skills to settle precedence — the hook still fires, so expect occasional wrong-skill starts — or disable it and lose nothing this repository needs, since the one skill worth keeping is vendored at `.agents/skills/verification-before-completion/`:
 
 ```bash
 python3 - <<'PY'
@@ -83,35 +52,24 @@ print("superpowers disabled")
 PY
 ```
 
-## 4. Antigravity
+## Skills that do not come from here
 
-Antigravity reads, in this order:
+`~/.claude/skills/synced/` holds the skills enabled on claude.ai. They download on their own once signed in — nothing to install, nothing to back up.
 
-1. **Workspace rules** — `AGENTS.md` and `GEMINI.md` at the project root. Both are installed by `setup.sh`; `AGENTS.md` is canonical and `GEMINI.md` is the thin adapter.
-2. **Skills** — global from `~/.gemini/config/skills/`, workspace from `.agents/skills/` relative to the workspace root.
+## Antigravity
 
-`bootstrap-machine.sh` symlinks the cross-project skills into the global directory, so Antigravity and Claude read the same files as the repo. The workspace side needs nothing extra — `.agents/skills/` in the project *is* the workspace skill directory.
+Antigravity reads workspace rules from `AGENTS.md` and `GEMINI.md` at the project root — both installed by `setup.sh`, `AGENTS.md` canonical and `GEMINI.md` the thin adapter. Skills come from `~/.gemini/config/skills/` (global, symlinked by the bootstrap) and `.agents/skills/` in the workspace, which needs nothing extra.
 
-The global directory may also hold skills that duplicate a workspace one, including a full copy of the superpowers set. `AGENTS.md` §External Skills decides which wins; the workspace copy is the one this repository maintains.
+Where the global directory holds a skill that duplicates a workspace one, the workspace copy is the one this repository maintains.
 
-There is no adapter file under the .agents directory — Antigravity never read one there. If an old project still has an AGENTS.md inside `.agents/`, delete it.
+## Verify
 
-## 5. MCP servers
-
-GitNexus needs installing and indexing per repository:
+The bootstrap ends with its own checks. To re-check later:
 
 ```bash
-npx gitnexus@latest analyze
+bash scripts/validate-pointers.sh                     # 0 dead pointers
+find ~/.claude/skills -maxdepth 1 -type l ! -exec test -e {} \; -print   # no broken symlinks
+ls ~/.claude/rules/ecc/common                         # hooks.md, performance.md only
 ```
 
-Connector-based servers (Figma, Atlassian, Linear, Notion, Slack, and the rest) authenticate interactively per machine. Nothing to copy; sign in from an interactive session via `/mcp`.
-
-## 6. Verify the machine
-
-```bash
-bash scripts/validate-pointers.sh          # 0 dead pointers
-ls -l ~/.claude/skills | grep ag-agent     # symlinks resolve
-ls ~/.claude/rules/ecc/common              # hooks.md, performance.md only
-```
-
-`~/.claude/rules/ecc/` must contain agent-level rules only. If a file there states a testing policy, review policy, workflow, or code convention for a project, it is stale — the project's own `AGENTS.md` owns those. See `.ai/rules/CHANGELOG.md` for what was removed and why.
+`~/.claude/rules/ecc/` holds agent-level rules only. A file there stating a testing policy, review policy, workflow, or code convention for a project is stale — the project's own `AGENTS.md` owns those. `.ai/rules/CHANGELOG.md` records what was removed and why.

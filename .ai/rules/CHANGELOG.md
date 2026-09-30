@@ -6,6 +6,20 @@ Record a change here when it alters what an agent does. A wording tidy-up that l
 
 This file is installed into every project, so it must stay portable: name files that live outside the project layer in prose, never as a path. A path that does not resolve where this file lands is a dead pointer.
 
+## 2026-09-30 — v2.5
+
+**`bootstrap-machine.sh` is the whole machine layer, in one run.** It already installed agent-level rules and symlinked nine cross-project skills; it now also merges the portable keys into `~/.claude/settings.json` (model, effort, `permissions.deny`, the four plugin marketplaces, the seven enabled plugins), registers the three MCP servers through `claude mcp add-json`, symlinks the machine-only skills, and ends with its own checks. A new machine needs one command instead of a doc walked by hand.
+
+The merge is additive and idempotent: a second run reports `already current`, and a pre-existing `verbose` or `permissions.allow` survives untouched.
+
+**Hooks and the status line stay out of it.** Every hook on the reference machine belongs to a tool — GitNexus writes two, the caveman CLI eight plus the status line, the Antigravity extension one — and each path exists only after that tool is installed. Copying them to a new machine produces hooks that fail silently, so the script installs nothing there and names the two `npm`/`npx` commands that do. `permissions.allow` and `additionalDirectories` are skipped for the same reason: they hold absolute project paths.
+
+**Machine skills are in the repo now.** Twenty-two skills that existed only in `~/.claude/skills` — design and frontend direction (`taste-skill`, `brandkit`, `soft-skill`, `stitch-skill`, `imagegen-*`, and the rest) plus nine product-management ones (`write-spec`, `sprint-planning`, `roadmap-update`, …) — sat there as loose directories under no git and no marketplace, so a new machine lost them. They live in `global/skills/` and the bootstrap symlinks them. `setup.sh` does not install them into a project: they are not project rules.
+
+`gitnexus-pdg-query` and `gitnexus-taint-analysis` went to `.agents/skills/` instead, beside the seven GitNexus skills already there, and joined the cross-project symlink list.
+
+**`validate-pointers.sh` skips `global/skills/`.** A vendored third-party skill cites example paths it never ships — `taste-skill` illustrates its block naming scheme with a `<category>/<name>--<system>.md` path that exists only in the example — and editing someone else's prose to satisfy the check would make re-vendoring lossy. The exclusion matches the stated scope, which already left vendored skills under `.claude/` alone.
+
 ## 2026-09-10 — v2.4
 
 **`AGENTS.md` §Rule Compliance.** Agents were treating the routing table as reference to consult rather than a contract, and skipping named skills mid-session. The new section sits ahead of §Project, at the top of the file where attention is highest, and states four obligations: read this file end to end before the first tool call, name the Task Routing group and read the rules and skills it names before the first production-code edit, keep that routing in force for the whole session rather than only the first turn, and name the files actually read so compliance is checkable. Token budget, session length, and "the change looks correct" are called out as non-exemptions because those were the observed rationalizations.

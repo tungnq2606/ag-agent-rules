@@ -26,9 +26,10 @@ CONTEXT.md                    domain glossary
 .claude/skills/               symlink để Skill tool của Claude discover được
 global/
   rules/                      → ~/.claude/rules/ — chỉ rule tầng agent
-  MACHINE-SETUP.md            phần phải làm tay khi lên máy mới
+  skills/                     → ~/.claude/skills/ — skill chỉ tầng máy (design, frontend, PM)
+  MACHINE-SETUP.md            phần còn lại phải làm tay khi lên máy mới
 scripts/
-  bootstrap-machine.sh        cài tầng máy
+  bootstrap-machine.sh        cài tầng máy — rule, skill, settings, MCP, một lần
   validate-pointers.sh        CI check pointer chết
 setup.sh                      cài tầng project vào một repo
 legacy/                       layout v1, không dùng nữa
@@ -51,10 +52,10 @@ git clone git@github.com:tungnq2606/ag-agent-rules.git ~/dev/ag-agent-rules
 cd ~/dev/ag-agent-rules
 
 DRY_RUN=1 bash scripts/bootstrap-machine.sh   # xem trước
-bash scripts/bootstrap-machine.sh             # tầng máy
+bash scripts/bootstrap-machine.sh             # rule, skill, settings, marketplace, MCP
 ```
 
-Phần còn lại (settings, hook, plugin, MCP auth) ở [global/MACHINE-SETUP.md](global/MACHINE-SETUP.md).
+Một lần chạy là xong tầng máy. Còn lại phải làm tay vì không copy được giữa máy: hook và statusLine (GitNexus, caveman CLI, extension Antigravity tự ghi khi cài), `permissions.allow`, và auth của connector MCP. Chi tiết ở [global/MACHINE-SETUP.md](global/MACHINE-SETUP.md).
 
 Symlink trỏ vào đường dẫn clone. Di chuyển clone thì chạy lại script.
 
