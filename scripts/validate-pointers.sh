@@ -78,15 +78,18 @@ resolve_kind() {
 }
 
 # Scope: the agent-facing surface only. A project's own docs (website/, docs/,
-# vendored skills under .claude/) are not this system's to police, and scanning
-# them buries the findings that matter.
+# vendored skills under .claude/ and global/skills/) are not this system's to
+# police, and scanning them buries the findings that matter. Third-party skills
+# in particular cite example paths they never ship; editing their prose to
+# satisfy this check would make re-vendoring lossy.
 {
   for f in "$ROOT"/AGENTS.md "$ROOT"/CLAUDE.md "$ROOT"/CONTEXT.md "$ROOT"/README.md; do
     [ -f "$f" ] && printf '%s\n' "$f"
   done
   for d in .agents .ai global scripts; do
     [ -d "$ROOT/$d" ] && find "$ROOT/$d" -name '*.md' \
-      -not -path '*/node_modules/*' -not -path '*/.git/*'
+      -not -path '*/node_modules/*' -not -path '*/.git/*' \
+      -not -path "$ROOT/global/skills/*"
   done
 } | sort -u > "$TMP/files"
 
