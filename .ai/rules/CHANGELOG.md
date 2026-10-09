@@ -6,6 +6,12 @@ Record a change here when it alters what an agent does. A wording tidy-up that l
 
 This file is installed into every project, so it must stay portable: name files that live outside the project layer in prose, never as a path. A path that does not resolve where this file lands is a dead pointer.
 
+## 2026-10-09 — v2.6
+
+**Android Kotlin port routing.** The Android app is moving from React Native to native Kotlin, and no skill or rule covered it. `AGENTS.md` gains an "Android Kotlin (native port)" group in Task Routing: a condition → skill table over twenty vendored skills, plus a pointer in Rules On Demand to the new `.ai/rules/android-kotlin-port.md` (port loop, RN → Kotlin map, constraints). The RN rules and skills are scoped to the JS source, so they no longer bleed into Kotlin work. Porting a screen is Medium at least; a toolchain upgrade or a change to shared contracts, navigation or the native bridge is Large / Risky and goes through the plan gate.
+
+**Twenty skills vendored into `.agents/skills/`.** Eleven from the official `android/skills` repository (navigation, edge-to-edge, adaptive layouts, testing, R8, AGP upgrade, manifest and Intent security, Play Billing, the `android` CLI) and nine from `chrisbanes/skills` (`compose-*`, `kotlin-*`), all Apache-2.0; the official licence text ships as `LICENSE-android-skills.txt`. Three names that could collide with RN work carry an `android-` prefix (`android-adaptive`, `android-edge-to-edge`, `android-testing-setup`). Skills with bundled binaries or scripts (`android-profiler`, `gradle-run`, `play-policy-insights`) were left out on purpose. Upstream text is untouched so a refresh is an overwrite; project facts live in the rule file.
+
 ## 2026-09-30 — v2.5
 
 **`bootstrap-machine.sh` is the whole machine layer, in one run.** It already installed agent-level rules and symlinked nine cross-project skills; it now also merges the portable keys into `~/.claude/settings.json` (model, effort, `permissions.deny`, the four plugin marketplaces, the seven enabled plugins), registers the three MCP servers through `claude mcp add-json`, symlinks the machine-only skills, and ends with its own checks. A new machine needs one command instead of a doc walked by hand.

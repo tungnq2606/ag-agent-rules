@@ -121,6 +121,34 @@ Do not apply performance optimizations without evidence or a concrete performanc
 
 Project rules in this repository override generic skill recommendations when they conflict.
 
+### Android Kotlin (native port)
+
+Applies when the task touches `android/**/*.kt`, Jetpack Compose, or Gradle for the React Native → Kotlin migration. Read `.ai/rules/android-kotlin-port.md` first (port loop, RN → Kotlin map, constraints). The RN rules and skills above, and `.ai/rules/code-style.md`, apply to `src/` and `lib/` only. Read the one skill the condition names, not all of them.
+
+| Condition | Skill to read |
+|-----------|---------------|
+| Composable state ownership, hoisting, `LaunchedEffect`/`DisposableEffect`, Flow collection | `.agents/skills/compose-state-and-effects/SKILL.md` |
+| Reusable Composable API, modifier parameters, slots | `.agents/skills/compose-component-design/SKILL.md` |
+| Recomposition cost, stability, jank in lists or live updates | `.agents/skills/compose-performance/SKILL.md` |
+| Compose motion (visibility, transitions, content switching) | `.agents/skills/compose-animations/SKILL.md` |
+| Coroutine scopes, cancellation, `StateFlow`/`SharedFlow`, one-shot events | `.agents/skills/kotlin-concurrency-and-flow/SKILL.md` |
+| `when`, sealed types, smart casts, nullable branching | `.agents/skills/kotlin-control-flow/SKILL.md` |
+| Kotlin function ownership, member vs extension, factories, value classes, domain types | `.agents/skills/kotlin-api-design/SKILL.md` |
+| Navigation, deep links, back stack, bottom sheets and dialogs as destinations | `.agents/skills/navigation-3/SKILL.md` |
+| Focus, keyboard, D-pad or accessibility focus in Compose | `.agents/skills/compose-focus-navigation/SKILL.md` |
+| Back gesture, Predictive Back | `.agents/skills/navigation-event/SKILL.md` |
+| Status/navigation bar overlap, IME insets | `.agents/skills/android-edge-to-edge/SKILL.md` |
+| Tablets, foldables, window size classes | `.agents/skills/android-adaptive/SKILL.md` |
+| Test strategy and harness (unit, UI, screenshot) | `.agents/skills/android-testing-setup/SKILL.md` |
+| Writing Compose UI or screenshot tests | `.agents/skills/compose-ui-testing-patterns/SKILL.md` |
+| Play Billing (replacing `react-native-iap`) | `.agents/skills/play-billing-library-version-upgrade/SKILL.md` |
+| `AndroidManifest.xml`, exported components, incoming Intents, permissions | `.agents/skills/android-intent-security/SKILL.md`, `.agents/skills/android-permissions-security/SKILL.md` (also read `.ai/rules/security.md`) |
+| R8 / ProGuard rules, release size | `.agents/skills/r8-analyzer/SKILL.md` |
+| AGP, Gradle or Kotlin version upgrade | `.agents/skills/agp-9-upgrade/SKILL.md` (a toolchain upgrade is Large / Risky: follow Task Routing) |
+| Emulator, device, screenshots, SDK from the terminal | `.agents/skills/android-cli/SKILL.md` |
+
+Porting a screen or module is Medium at least, and Large / Risky when it changes shared contracts, navigation, or the native bridge. Existing native Kotlin (notification rendering, live updates) is reused, not rewritten.
+
 ### Completion (mandatory for every non-trivial change)
 
 These are not optional — every non-trivial code change triggers all three steps below, in order.
@@ -167,6 +195,7 @@ Read only when relevant:
 - Secrets, tokens, logging, deep links, WebView, permissions → `.ai/rules/security.md`
 - Environments, schemes, gradle tasks, native rebuild triggers → `.ai/rules/build-release.md`
 - Notifications, MMKV persistence, deep links, New Architecture status → `.ai/rules/native-platform.md`
+- Porting Android from React Native to Kotlin/Compose → `.ai/rules/android-kotlin-port.md`
 - Devices and OS versions to verify on → `.ai/rules/device-matrix.md`
 - GitNexus usage → `.ai/rules/gitnexus.md`
 - Documentation → `.ai/rules/documentation.md`
