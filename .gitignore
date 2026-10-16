@@ -1,1 +1,5 @@
 .DS_Store
+
+# personal project state: work plans and session memory stay local
+projects/*/ai/plans/
+projects/*/ai/memory/

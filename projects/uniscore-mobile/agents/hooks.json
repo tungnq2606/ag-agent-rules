@@ -1,0 +1,25 @@
+{
+  "uniscore-rule-compliance": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "bash /Users/quoctung/Documents/works/uniscore-mobile/.agents/hooks/ag-session-start.sh",
+        "timeout": 10
+      }
+    ],
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "bash /Users/quoctung/Documents/works/uniscore-mobile/.agents/hooks/ag-session-start.sh",
+        "timeout": 10
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "bash /Users/quoctung/Documents/works/uniscore-mobile/.agents/hooks/ag-stop.sh",
+        "timeout": 10
+      }
+    ]
+  }
+}
