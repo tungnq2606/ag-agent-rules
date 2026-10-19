@@ -14,7 +14,8 @@ put() { # put <src-dir> <dst-dir>
 put "$SRC/ai" "$T/.ai"
 put "$SRC/agents/hooks" "$T/.agents/hooks"
 put "$SRC/agents/skills" "$T/.agents/skills"; rm -f "$T/.agents/skills/SYMLINKS_TO_CLAUDE_SKILLS.txt"
-[ -e "$T/.agents/hooks.json" ] && [ "${FORCE:-0}" != 1 ] || cp "$SRC/agents/hooks.json" "$T/.agents/hooks.json"
+# hooks.json carries absolute paths; point them at this clone
+[ -e "$T/.agents/hooks.json" ] && [ "${FORCE:-0}" != 1 ] || sed "s|/Users/quoctung/Documents/works/uniscore-mobile|$T|g" "$SRC/agents/hooks.json" > "$T/.agents/hooks.json"
 mkdir -p "$T/.claude"
 [ -e "$T/.claude/settings.local.json" ] && [ "${FORCE:-0}" != 1 ] || cp "$SRC/claude/settings.local.json" "$T/.claude/settings.local.json"
 # shared skills come from the repo template; the team-owned ones are symlinks into .claude/skills
